@@ -1,0 +1,37 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+coverage
+.out
+
+# Generated files
+src/generated
+generated
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Package manager files
+pnpm-lock.yaml
+package-lock.json
+pnpm-workspace.yaml
+yarn.lock
+
+# Framework caches
+.next
+.nuxt
+.turbo
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode
+.idea
