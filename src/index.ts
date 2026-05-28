@@ -1,5 +1,6 @@
 import { startApp } from "./app.js";
 import { Env } from "./config/env.config.js";
+import { testRedisConnection } from "./config/redis.config.js";
 import { testConnection } from "./lib/prisma.js";
 import { logger } from "./lib/winston.js";
 
@@ -7,6 +8,7 @@ const startServer = async () => {
   try {
     const app = startApp();
     await testConnection();
+    await testRedisConnection();
 
     const server = app.listen(Env.PORT, () => {
       logger.info(`Server started successfully `, {

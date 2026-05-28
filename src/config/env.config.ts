@@ -4,13 +4,25 @@ configDotenv();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  PORT: z.string().default("3000"),
+  PORT: z.string().transform(Number).pipe(z.number().min(1).max(65535)),
+
+  API_VERSION: z.string().min(1),
+
   DATABASE_URL: z.string().default("postgresql://user:password@localhost:5432/mydb"),
 
   JWT_SECRET: z.string().default("your_jwt_secret"),
   JWT_EXPIRES_IN: z.string().default("1h"),
+
   LOG_LEVEL: z.enum(["error", "warn", "info", "verbose", "debug"]).default("info"),
   SLOW_QUERY_THRESHOLD: z.string().transform(Number).default(10000),
+
+  FRONTEND_URL: z.string().min(1).default("http://localhost:3000"),
+  CORS_ORIGIN: z.string().min(1).default("http://localhost:3000"),
+
+  MAIL_USER: z.string().min(1, { error: "Mail user is required" }),
+  MAIL_PASS: z.string().min(1, { error: "Mail user is required" }),
+
+  ADMIN_NOTIFICATION_EMAIL: z.string().email().optional(),
 });
 
 const parseEnv = () => {
