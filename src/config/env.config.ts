@@ -9,7 +9,8 @@ const envSchema = z.object({
   API_VERSION: z.string().min(1),
 
   DATABASE_URL: z.string().default("postgresql://user:password@localhost:5432/mydb"),
-
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  
   JWT_SECRET: z.string().default("your_jwt_secret"),
   JWT_EXPIRES_IN: z.string().default("1h"),
 

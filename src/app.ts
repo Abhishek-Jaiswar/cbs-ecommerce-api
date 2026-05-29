@@ -19,7 +19,7 @@ export const startApp = (): Application => {
       .filter(Boolean)
   );
 
-  app.set("trust proxy", true);
+  app.set("trust proxy", false); // in production this must be 1
   app.use(helmet());
 
   app.use(

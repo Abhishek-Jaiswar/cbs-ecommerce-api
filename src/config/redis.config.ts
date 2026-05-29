@@ -1,12 +1,10 @@
 import { Redis } from "ioredis";
 import { logger } from "../lib/winston.js";
+import { Env } from "./env.config.js";
 
-export const redis = new Redis(
-  "redis://default:TuSIw83JINk8LscMMqhvAEeXISkLmtG4@redis-15012.crce263.ap-south-1-1.ec2.cloud.redislabs.com:15012",
-  {
-    lazyConnect: true,
-  }
-);
+export const redis = new Redis(Env.REDIS_URL, {
+  lazyConnect: true,
+});
 
 export const testRedisConnection = async (): Promise<void> => {
   try {

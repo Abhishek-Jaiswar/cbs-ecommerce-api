@@ -74,6 +74,9 @@ class UserRepository {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: "desc" },
+        omit: {
+          password: true,
+        },
       }),
 
       prisma.user.count(),
@@ -84,7 +87,7 @@ class UserRepository {
       total,
       page,
       limit,
-      totalPage: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     };
   }
 

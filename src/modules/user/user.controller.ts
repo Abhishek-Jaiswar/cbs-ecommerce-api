@@ -108,22 +108,15 @@ class UserController {
 
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const limit = Number(req.query.limit);
-      const page = Number(req.query.page);
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
 
-      const user = await userService.getAllUsers(page, limit);
-
-      if (!user || user.items.length === 0) {
-        return res.status(404).json({
-          message: "Failed to fetch users",
-          success: false,
-        });
-      }
+      const users = await userService.getAllUsers(page, limit);
 
       return res.status(200).json({
-        message: "User fetched successfully",
+        message: "Users fetched successfully",
         success: true,
-        data: user,
+        data: users,
       });
     } catch (error) {
       next(error);
