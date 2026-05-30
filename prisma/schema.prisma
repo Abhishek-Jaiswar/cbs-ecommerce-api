@@ -116,11 +116,10 @@ model Media {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  productImages      ProductImage[]
-  brandImages        ProductBrand[]
-  categoryImages     Category[]
-  blogCoverImages    BlogPost[]
-  blogCategoryImages BlogCategory[]
+  productImages   ProductImage[]
+  brandImages     ProductBrand[]
+  categoryImages  Category[]
+  blogCoverImages BlogPost[]
 
   @@index([storageKey])
 }
@@ -291,13 +290,18 @@ model BlogPost {
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Restrict)
 
-  categories BlogPostCategory[]
-  tags       BlogPostTag[]
+  categoryId String
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  tagId String
+  tag   BlogTag @relation(fields: [tagId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([authorId])
+  @@index([categoryId])
+  @@index([tagId])
   @@index([status])
   @@index([isFeatured])
   @@index([publishedAt])
@@ -305,67 +309,25 @@ model BlogPost {
 }
 
 model BlogCategory {
-  id      String  @id @default(cuid())
-  slug    String  @unique
-  name    String
-  excerpt String?
-
-  imageId String?
-  image   Media?  @relation(fields: [imageId], references: [id])
-
+  id       String  @id @default(cuid())
+  name     String  @unique
+  slug     String  @unique
   isActive Boolean @default(true)
 
-  parentId String?
-  parent   BlogCategory?  @relation("BlogCategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children BlogCategory[] @relation("BlogCategoryHierarchy")
+  posts BlogPost[]
 
-  posts BlogPostCategory[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([parentId, name])
   @@index([slug])
-  @@index([parentId])
-}
-
-model BlogPostCategory {
-  postId     String
-  categoryId String
-
-  post     BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  category BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@id([postId, categoryId])
-  @@index([categoryId])
 }
 
 model BlogTag {
-  id   String @id @default(cuid())
-  slug String @unique
-  name String @unique
+  id       String  @id @default(cuid())
+  name     String  @unique
+  slug     String  @unique
+  isActive Boolean @default(true)
 
-  posts BlogPostTag[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  posts BlogPost[]
 
   @@index([slug])
-}
-
-model BlogPostTag {
-  postId String
-  tagId  String
-
-  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@id([postId, tagId])
-  @@index([tagId])
 }
 
 model Cart {

@@ -160,7 +160,6 @@ CREATE TABLE "Category" (
     "excerpt" TEXT,
     "imageId" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "parentId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -199,6 +198,8 @@ CREATE TABLE "BlogPost" (
     "isFeatured" BOOLEAN NOT NULL DEFAULT false,
     "publishedAt" TIMESTAMP(3),
     "authorId" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "tagId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -208,45 +209,21 @@ CREATE TABLE "BlogPost" (
 -- CreateTable
 CREATE TABLE "BlogCategory" (
     "id" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "excerpt" TEXT,
-    "imageId" TEXT,
+    "slug" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "parentId" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "BlogCategory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "BlogPostCategory" (
-    "postId" TEXT NOT NULL,
-    "categoryId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "BlogPostCategory_pkey" PRIMARY KEY ("postId","categoryId")
-);
-
--- CreateTable
 CREATE TABLE "BlogTag" (
     "id" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "slug" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "BlogTag_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "BlogPostTag" (
-    "postId" TEXT NOT NULL,
-    "tagId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "BlogPostTag_pkey" PRIMARY KEY ("postId","tagId")
 );
 
 -- CreateTable
@@ -556,6 +533,12 @@ CREATE UNIQUE INDEX "BlogPost_slug_key" ON "BlogPost"("slug");
 CREATE INDEX "BlogPost_authorId_idx" ON "BlogPost"("authorId");
 
 -- CreateIndex
+CREATE INDEX "BlogPost_categoryId_idx" ON "BlogPost"("categoryId");
+
+-- CreateIndex
+CREATE INDEX "BlogPost_tagId_idx" ON "BlogPost"("tagId");
+
+-- CreateIndex
 CREATE INDEX "BlogPost_status_idx" ON "BlogPost"("status");
 
 -- CreateIndex
@@ -574,13 +557,7 @@ CREATE UNIQUE INDEX "BlogCategory_slug_key" ON "BlogCategory"("slug");
 CREATE INDEX "BlogCategory_slug_idx" ON "BlogCategory"("slug");
 
 -- CreateIndex
-CREATE INDEX "BlogCategory_parentId_idx" ON "BlogCategory"("parentId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "BlogCategory_parentId_name_key" ON "BlogCategory"("parentId", "name");
-
--- CreateIndex
-CREATE INDEX "BlogPostCategory_categoryId_idx" ON "BlogPostCategory"("categoryId");
+CREATE UNIQUE INDEX "BlogCategory_name_key" ON "BlogCategory"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BlogTag_slug_key" ON "BlogTag"("slug");
@@ -590,9 +567,6 @@ CREATE UNIQUE INDEX "BlogTag_name_key" ON "BlogTag"("name");
 
 -- CreateIndex
 CREATE INDEX "BlogTag_slug_idx" ON "BlogTag"("slug");
-
--- CreateIndex
-CREATE INDEX "BlogPostTag_tagId_idx" ON "BlogPostTag"("tagId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cart_userId_key" ON "Cart"("userId");
@@ -778,22 +752,10 @@ ALTER TABLE "BlogPost" ADD CONSTRAINT "BlogPost_coverImageId_fkey" FOREIGN KEY (
 ALTER TABLE "BlogPost" ADD CONSTRAINT "BlogPost_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BlogCategory" ADD CONSTRAINT "BlogCategory_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "BlogPost" ADD CONSTRAINT "BlogPost_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "BlogCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BlogCategory" ADD CONSTRAINT "BlogCategory_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "BlogCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BlogPostCategory" ADD CONSTRAINT "BlogPostCategory_postId_fkey" FOREIGN KEY ("postId") REFERENCES "BlogPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BlogPostCategory" ADD CONSTRAINT "BlogPostCategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "BlogCategory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BlogPostTag" ADD CONSTRAINT "BlogPostTag_postId_fkey" FOREIGN KEY ("postId") REFERENCES "BlogPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BlogPostTag" ADD CONSTRAINT "BlogPostTag_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "BlogTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BlogPost" ADD CONSTRAINT "BlogPost_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "BlogTag"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -886,7 +848,6 @@ CREATE UNIQUE INDEX "Address_default_billing_user_key" ON "Address"("userId") WH
 CREATE UNIQUE INDEX "ProductImage_primary_product_key" ON "ProductImage"("productId") WHERE "isPrimary" = true;
 
 CREATE UNIQUE INDEX "Category_root_name_key" ON "Category"("name") WHERE "parentId" IS NULL;
-CREATE UNIQUE INDEX "BlogCategory_root_name_key" ON "BlogCategory"("name") WHERE "parentId" IS NULL;
 
 -- AddForeignKey
 ALTER TABLE "OfferProduct" ADD CONSTRAINT "OfferProduct_offerId_fkey" FOREIGN KEY ("offerId") REFERENCES "Offer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
