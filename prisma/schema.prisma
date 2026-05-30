@@ -18,12 +18,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  reviews   Review[]
-  cart      Cart[]
-  wishlist  Wishlist[]
-  addresses Address[]
-  orders    Order[]
-  blogPosts BlogPost[]
+  reviews           Review[]
+  cart              Cart?
+  wishlist          Wishlist?
+  addresses         Address[]
+  orders            Order[]
+  blogPosts         BlogPost[]
+  couponRedemptions CouponRedemption[]
 
   @@index([email])
   @@index([role])
@@ -62,46 +63,40 @@ model Product {
   name String
   slug String @unique
 
-  brandId String
+  brandId    String
+  categoryId String
 
   excerpt     String
   description String
 
-  offerEnds DateTime?
-
   price         Decimal  @db.Decimal(10, 2)
   originalPrice Decimal? @db.Decimal(10, 2)
 
-  categoryId String
-
-  stock Int
+  offerEnds DateTime?
 
   isSale     Boolean @default(false)
   isFeatured Boolean @default(false)
+  isNew      Boolean @default(false)
   forListing Boolean @default(false)
 
   status ProductStatus @default(DRAFT)
 
-  size  String[]
-  color String[]
+  brand    ProductBrand @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
-  images String[]
+  images   ProductImage[]
+  colors   ProductColor[]
+  sizes    ProductSize[]
+  variants ProductVariant[]
+
+  reviews       Review[]
+  productTags   ProductTag[]
+  offers        OfferProduct[]
+  wishlistItems WishlistItem[]
+  orderItems    OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  brand ProductBrand @relation(fields: [brandId], references: [id], onDelete: Restrict)
-
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-
-  reviews       Review[]
-  productColors ProductColor[]
-  productImages ProductImage[]
-  productTags   ProductTag[]
-  variants      ProductVariant[]
-  cartItems     CartItem[]
-  wishlistItems WishlistItem[]
-  orderItems    OrderItem[]
 
   @@index([brandId])
   @@index([categoryId])
@@ -111,37 +106,80 @@ model Product {
   @@index([createdAt])
 }
 
+model Media {
+  id String @id @default(cuid())
+
+  url        String
+  storageKey String  @unique
+  altText    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productImages      ProductImage[]
+  brandImages        ProductBrand[]
+  categoryImages     Category[]
+  blogCoverImages    BlogPost[]
+  blogCategoryImages BlogCategory[]
+
+  @@index([storageKey])
+}
+
 model ProductColor {
-  id   String @id @default(cuid())
+  id String @id @default(cuid())
+
   name String
-  hex  String
+  hex  String?
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([productId, hex])
+  variants ProductVariant[]
+  images   ProductImage[]
+
+  @@unique([productId, name])
+  @@index([productId])
+}
+
+model ProductSize {
+  id String @id @default(cuid())
+
+  value String
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  variants ProductVariant[]
+
+  @@unique([productId, value])
   @@index([productId])
 }
 
 model ProductImage {
-  id       String @id @default(cuid())
-  url      String
-  publicId String @unique
+  id String @id @default(cuid())
+
   position Int
+
+  isPrimary Boolean @default(false)
+
+  mediaId String
+  media   Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  colorId String?
+  color   ProductColor? @relation(fields: [colorId], references: [id], onDelete: SetNull)
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, position])
   @@index([productId])
+  @@index([colorId])
 }
 
 model ProductVariant {
   id String @id @default(cuid())
 
-  sku   String? @unique
-  size  String?
-  color String?
+  sku String? @unique
 
   price Decimal? @db.Decimal(10, 2)
   stock Int      @default(0)
@@ -149,20 +187,30 @@ model ProductVariant {
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  colorId String
+  color   ProductColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
+
+  sizeId String
+  size   ProductSize @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+
   cartItems  CartItem[]
   orderItems OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([productId, size, color])
+  @@unique([productId, colorId, sizeId])
   @@index([productId])
+  @@index([colorId])
+  @@index([sizeId])
 }
 
 model ProductBrand {
-  id    String  @id @default(cuid())
-  name  String
-  image String?
+  id   String @id @default(cuid())
+  name String
+
+  imageId String?
+  image   Media?  @relation(fields: [imageId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -178,7 +226,9 @@ model Category {
   slug    String  @unique
   name    String
   excerpt String?
-  image   String?
+
+  imageId String?
+  image   Media?  @relation(fields: [imageId], references: [id])
 
   isActive Boolean @default(true)
 
@@ -190,6 +240,7 @@ model Category {
   updatedAt DateTime @updatedAt
 
   products Product[]
+  offers   OfferCategory[]
 
   @@unique([parentId, name])
   @@index([slug])
@@ -230,7 +281,8 @@ model BlogPost {
   excerpt String?
   content String
 
-  coverImage String?
+  coverImageId String?
+  image        Media?  @relation(fields: [coverImageId], references: [id])
 
   status      BlogStatus @default(DRAFT)
   isFeatured  Boolean    @default(false)
@@ -257,7 +309,9 @@ model BlogCategory {
   slug    String  @unique
   name    String
   excerpt String?
-  image   String?
+
+  imageId String?
+  image   Media?  @relation(fields: [imageId], references: [id])
 
   isActive Boolean @default(true)
 
@@ -334,16 +388,13 @@ model CartItem {
   quantity Int
 
   cartId    String
-  productId String
-  variantId String?
+  variantId String
 
-  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
-  @@unique([cartId, productId, variantId])
+  @@unique([cartId, variantId])
   @@index([cartId])
-  @@index([productId])
   @@index([variantId])
 }
 
@@ -433,6 +484,7 @@ model Order {
 
   orderItems OrderItem[]
   payments   Payment[]
+  couponUse  CouponRedemption?
 
   @@index([userId])
   @@index([status])
@@ -498,6 +550,117 @@ model Payment {
   @@index([createdAt])
 }
 
+model Offer {
+  id String @id @default(cuid())
+
+  name        String
+  slug        String  @unique
+  description String?
+
+  discountType  DiscountType
+  discountValue Decimal      @db.Decimal(10, 2)
+
+  startsAt DateTime
+  endsAt   DateTime?
+
+  isActive Boolean @default(true)
+  priority Int     @default(0)
+
+  products   OfferProduct[]
+  categories OfferCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([endsAt])
+  @@index([priority])
+}
+
+model OfferProduct {
+  offerId   String
+  productId String
+
+  offer   Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([offerId, productId])
+  @@index([productId])
+}
+
+model OfferCategory {
+  offerId    String
+  categoryId String
+
+  offer    Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([offerId, categoryId])
+  @@index([categoryId])
+}
+
+model Coupon {
+  id String @id @default(cuid())
+
+  code        String  @unique
+  name        String
+  description String?
+
+  discountType  DiscountType
+  discountValue Decimal      @db.Decimal(10, 2)
+
+  minOrderAmount    Decimal? @db.Decimal(10, 2)
+  maxDiscountAmount Decimal? @db.Decimal(10, 2)
+
+  usageLimit    Int?
+  perUserLimit  Int?
+  redeemedCount Int  @default(0)
+
+  startsAt DateTime
+  endsAt   DateTime?
+
+  isActive Boolean @default(true)
+
+  redemptions CouponRedemption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([endsAt])
+}
+
+model CouponRedemption {
+  id String @id @default(cuid())
+
+  couponId String
+  userId   String
+  orderId  String @unique
+
+  codeSnapshot   String
+  discountType   DiscountType
+  discountValue  Decimal      @db.Decimal(10, 2)
+  discountAmount Decimal      @db.Decimal(10, 2)
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([couponId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
 enum Role {
   USER
   ADMIN
@@ -551,4 +714,9 @@ enum PaymentMethod {
   PAY_LATER
   COD
   UNKNOWN
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
 }

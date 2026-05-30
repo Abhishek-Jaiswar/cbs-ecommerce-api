@@ -10,7 +10,7 @@ const envSchema = z.object({
 
   DATABASE_URL: z.string().default("postgresql://user:password@localhost:5432/mydb"),
   REDIS_URL: z.string().default("redis://localhost:6379"),
-  
+
   JWT_SECRET: z.string().default("your_jwt_secret"),
   JWT_EXPIRES_IN: z.string().default("1h"),
 
@@ -24,6 +24,10 @@ const envSchema = z.object({
   MAIL_PASS: z.string().min(1, { error: "Mail user is required" }),
 
   ADMIN_NOTIFICATION_EMAIL: z.string().email().optional(),
+
+  CLOUDINARY_CLOUD_NAME: z.string().min(1, { error: "Cloud name is required" }),
+  CLOUDINARY_CLOUD_API_KEY: z.string().min(1, { error: "Cloud api key is required" }),
+  CLOUDINARY_CLOUD_API_SECRET: z.string().min(1, { error: "Cloud api secret is required" }),
 });
 
 const parseEnv = () => {

@@ -1,40 +1,36 @@
-FROM node:22-slim AS base
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssl \
-  && rm -rf /var/lib/apt/lists/*
-
-FROM base AS pnpm
+COPY package.json pnpm-lock.yaml ./
 
 RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
 
-FROM pnpm AS deps
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-
-FROM deps AS build
+RUN pnpm install
 
 COPY . .
-RUN DATABASE_URL="postgresql://user:password@localhost:5432/mydb" pnpm prisma generate
-RUN pnpm build \
-  && find dist -type f \( -name "*.map" -o -name "*.d.ts" -o -name "*.d.ts.map" \) -delete
 
-FROM deps AS prod-deps
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
 
-RUN pnpm prune --prod \
-  && find node_modules -type f \( -name "*.map" -o -name "*.d.ts" -o -name "*.md" \) -delete
+RUN pnpm prisma generate
+RUN pnpm build
 
-FROM base AS runtime
+FROM node:22-alpine
 
-ENV NODE_ENV=production
+WORKDIR /app
 
-COPY package.json ./
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/prisma ./prisma
+COPY package.json pnpm-lock.yaml ./
 
-EXPOSE 8000
+RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
+
+RUN pnpm install --prod
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+EXPOSE 3000
 
 CMD ["node", "dist/src/index.js"]
+
+# docker build --build-arg DATABASE_URL=dummy --no-cache -t cb-server .
