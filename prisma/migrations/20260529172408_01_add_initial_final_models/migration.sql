@@ -160,6 +160,7 @@ CREATE TABLE "Category" (
     "excerpt" TEXT,
     "imageId" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "parentId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

@@ -89,11 +89,12 @@ model Product {
   sizes    ProductSize[]
   variants ProductVariant[]
 
-  reviews       Review[]
-  productTags   ProductTag[]
-  offers        OfferProduct[]
-  wishlistItems WishlistItem[]
-  orderItems    OrderItem[]
+  reviews        Review[]
+  productTags    ProductTag[]
+  offers         OfferProduct[]
+  wishlistItems  WishlistItem[]
+  orderItems     OrderItem[]
+  specifications ProductSpecification?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,6 +105,16 @@ model Product {
   @@index([isFeatured])
   @@index([isSale])
   @@index([createdAt])
+}
+
+model ProductSpecification {
+  id String @id @default(cuid())
+
+  key   String
+  value String
+
+  productId String?  @unique
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 }
 
 model Media {

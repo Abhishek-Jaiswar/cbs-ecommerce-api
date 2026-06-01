@@ -27,6 +27,12 @@ class UserRepository {
         name: payload.name,
         email: payload.email,
         password: payload.password,
+        cart: {
+          create: {},
+        },
+        wishlist: {
+          create: {},
+        },
       },
 
       select: {
@@ -61,6 +67,18 @@ class UserRepository {
     return prisma.user.findUnique({
       where: {
         id: userId,
+      },
+      include: {
+        cart: {
+          include: {
+            items: true,
+          },
+        },
+        wishlist: {
+          include: {
+            items: true,
+          },
+        },
       },
       omit: {
         password: true,
