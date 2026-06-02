@@ -207,6 +207,10 @@ class ProductService {
       `products/${payload.productId}`
     );
 
+    const targetColorId = payload.colorId || null;
+    const sameColorImages = product.images.filter((img) => img.colorId === targetColorId);
+    const maxPosition = sameColorImages.reduce((max, img) => Math.max(max, img.position), 0);
+
     const newPayload = uploadedImages.map((image, index) => ({
       media: {
         url: image.url,
@@ -214,8 +218,8 @@ class ProductService {
       },
       productImage: {
         productId: payload.productId,
-        colorId: payload.colorId || null,
-        position: product.images.length + index + 1,
+        colorId: targetColorId,
+        position: maxPosition + index + 1,
         isPrimary: product.images.length === 0 && index === 0,
       },
     }));
