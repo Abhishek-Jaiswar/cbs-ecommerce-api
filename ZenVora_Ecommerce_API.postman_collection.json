@@ -1,0 +1,1254 @@
+{
+  "info": {
+    "_postman_id": "29680e5d-80c9-40d0-a234-8d76e9120b9d",
+    "name": "ZenVora Ecommerce API",
+    "description": "Postman collection for testing the CBS Ecommerce / ZenVora Express API modules (Authentication, Categories, Brands, Addresses, Product Tags, Blog Tags, and Reviews).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36330707"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get Profile (Get Me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/get-me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "get-me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users (Admin only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/get-all?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "get-all"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Abhishek Jaiswar\",\r\n    \"email\": \"abhisheknduw@gmail.com\",\r\n    \"password\": \"12345678\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify-otp",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"otp\": \"470044\",\r\n    \"email\": \"abhisheknduw@gmail.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email-verification/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email-verification", "verify-otp"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request-email-verification-otp",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/email-verification/request-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email-verification", "request-otp"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"abhisheknduw@gmail.com\",\r\n    \"password\": \"12345678\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get Categories List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category Tree",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/tree",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "tree"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category By Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/slug/i-phone-18",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "slug", "i-phone-18"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "I Phone 18",
+                  "type": "text"
+                },
+                {
+                  "key": "slug",
+                  "value": "i-phone-18",
+                  "type": "text"
+                },
+                {
+                  "key": "excerpt",
+                  "value": "I phone 18, 256 gb ram, 1tb storage",
+                  "type": "text"
+                },
+                {
+                  "key": "parentId",
+                  "value": "cmpx3fqsi000058nfoslm8idm",
+                  "description": "Parent category cuid (optional)",
+                  "type": "text"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "description": "Image file to upload",
+                  "type": "file",
+                  "src": "postman-cloud:///1f096fd7-309f-44d0-a529-31b996d4f7fe"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Category (Admin only)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Mobile Phones",
+                  "type": "text"
+                },
+                {
+                  "key": "excerpt",
+                  "value": "Upgraded excerpt description",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "description": "Optional new image file to upload",
+                  "type": "file",
+                  "src": "postman-cloud:///1f11e5e5-aa97-4490-a834-fb75de831166"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Category (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Brands",
+      "item": [
+        {
+          "name": "Get Brands List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/brands?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Brand By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/brands/{{brandId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "brands", "{{brandId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Brand (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "ZenVora",
+                  "type": "text"
+                },
+                {
+                  "key": "altText",
+                  "value": "ZenVora Brand Logo",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "description": "Brand logo image to upload",
+                  "type": "file",
+                  "src": "postman-cloud:///1f0dea6f-bd4a-4580-93e1-3aa13d0e0f56"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Brand (Admin only)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "ZenVora Premium",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "description": "Optional new brand logo image",
+                  "type": "file",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/brands/{{brandId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "brands", "{{brandId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Brand (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/brands/{{brandId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "brands", "{{brandId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Addresses",
+      "item": [
+        {
+          "name": "Get My Addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Address By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", "{{addressId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"Abhishek Jaiswar\",\n  \"phoneNumber\": \"8591151528\",\n  \"addressLine1\": \"123 Main Street\",\n  \"addressLine2\": \"Apt 4B\",\n  \"landmark\": \"Near Central Park\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"postalCode\": \"400095\",\n  \"country\": \"India\",\n  \"isDefaultShipping\": true,\n  \"isDefaultBilling\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/addresses",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressLine1\": \"789 Oak Ave\",\n  \"isDefaultShipping\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/addresses/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", "{{addressId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/addresses/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", "{{addressId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Tags",
+      "item": [
+        {
+          "name": "Get Product Tags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product-tags?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-tags"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tag By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/product-tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "product-tags", "{{tagId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tag By Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/product-tags/slug/new",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "product-tags", "slug", "new"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Tag (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Arrival\",\n  \"slug\": \"new-arrival\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/product-tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["product-tags"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Tag (Admin only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Trending Product\",\n  \"slug\": \"trending-product\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/product-tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "product-tags", "{{tagId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Tag (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/product-tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "product-tags", "{{tagId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Tags",
+      "item": [
+        {
+          "name": "Get Blog Tags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/blog-tags?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "blog-tags"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blog Tag By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/blog-tags/{{blogTagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "blog-tags", "{{blogTagId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blog Tag By Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/blog-tags/slug/lifestyle",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "blog-tags", "slug", "lifestyle"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog Tag (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lifestyle\",\n  \"slug\": \"lifestyle\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/blog-tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "blog-tags"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Blog Tag (Admin only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lifestyle & Fashion\",\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/blog-tags/{{blogTagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "blog-tags", "{{blogTagId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Blog Tag (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/blog-tags/{{blogTagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "blog-tags", "{{blogTagId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Get Product Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/product/{{productId}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews", "product", "{{productId}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/{{reviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews", "{{reviewId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"rating\": 5,\n  \"comment\": \"Amazing device! Highly recommended.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Decent device, after a week of usage. Editing my rating.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/{{reviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews", "{{reviewId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reviews/{{reviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "reviews", "{{reviewId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get Products Listing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product By Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/slug/zenvora-phone-x",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "slug", "zenvora-phone-x"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product Basic Info (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ZenVora Phone X\",\n  \"slug\": \"zenvora-phone-x\",\n  \"brandId\": \"{{brandId}}\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"tagIds\": [\"{{tagId}}\"],\n  \"excerpt\": \"Flagship smartphone with stellar camera.\",\n  \"description\": \"Detailed description of ZenVora Phone X with high performance processor and OLED display.\",\n  \"price\": 999.99,\n  \"originalPrice\": 1099.99,\n  \"isNew\": true,\n  \"isFeatured\": true,\n  \"isSale\": false,\n  \"forListing\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product Basic Info (Admin only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 949.99,\n  \"isFeatured\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product Status (Admin only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create or Update Product Color (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Space Grey\",\n  \"hex\": \"#5A5D64\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/colors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "colors"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Color (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/colors/{{colorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "colors", "{{colorId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create or Update Product Size (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"128GB\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/sizes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "sizes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Size (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/sizes/{{sizeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "sizes", "{{sizeId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product Variant (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colorId\": \"{{colorId}}\",\n  \"sizeId\": \"{{sizeId}}\",\n  \"price\": 999.99,\n  \"stock\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "variants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Variant (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/variants/{{variantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "variants", "{{variantId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Product Images (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "colorId",
+                  "value": "{{colorId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "description": "Product images to upload",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "images"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Single Product Image (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "colorId",
+                  "value": "{{colorId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "description": "Single product image to upload",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "image"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Image (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/images/{{imageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "images", "{{imageId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product Specifications (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"key\": \"Screen Size\",\n    \"value\": \"6.7 inches\"\n  },\n  {\n    \"key\": \"RAM\",\n    \"value\": \"8 GB\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/specifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "specifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Specification (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/specifications/{{specificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "specifications",
+                "{{specificationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "categoryId",
+      "value": "cuid_placeholder_for_category"
+    },
+    {
+      "key": "brandId",
+      "value": "cuid_placeholder_for_brand"
+    },
+    {
+      "key": "addressId",
+      "value": "cuid_placeholder_for_address"
+    },
+    {
+      "key": "tagId",
+      "value": "cuid_placeholder_for_tag"
+    },
+    {
+      "key": "blogTagId",
+      "value": "cuid_placeholder_for_blog_tag"
+    },
+    {
+      "key": "productId",
+      "value": "cuid_placeholder_for_product"
+    },
+    {
+      "key": "colorId",
+      "value": "cuid_placeholder_for_color"
+    },
+    {
+      "key": "sizeId",
+      "value": "cuid_placeholder_for_size"
+    },
+    {
+      "key": "variantId",
+      "value": "cuid_placeholder_for_variant"
+    },
+    {
+      "key": "imageId",
+      "value": "cuid_placeholder_for_image"
+    },
+    {
+      "key": "specificationId",
+      "value": "cuid_placeholder_for_specification"
+    },
+    {
+      "key": "reviewId",
+      "value": "cuid_placeholder_for_review"
+    }
+  ]
+}

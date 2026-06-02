@@ -79,6 +79,12 @@ export type TProductVariantWithSku = TProductVariantDTO & {
   sku: string;
 };
 
+export const productStatusSchema = z.object({
+  status: z.enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"]),
+});
+
+export type TProductStatusDTO = z.infer<typeof productStatusSchema>;
+
 // import { nanoid } from "nanoid";
 
 // const sku = `SKU-${nanoid(8).toUpperCase()}`;

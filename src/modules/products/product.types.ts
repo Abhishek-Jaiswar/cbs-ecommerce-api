@@ -6,8 +6,7 @@ export type TMediaDTO = {
 
 export type TCreateProductImages = {
   productId: string;
-  mediaId: string;
-  colorId: string;
+  colorId: string | null;
   position: number;
   isPrimary: boolean;
 };
@@ -21,4 +20,10 @@ export type TCreateProductSpecification = {
 export type TProductImageUpload = {
   media: TMediaDTO;
   productImage: TCreateProductImages;
+};
+
+export type TImageUpload = {
+  images: Express.Multer.File[];
+  productId: string;
+  colorId: string;
 };

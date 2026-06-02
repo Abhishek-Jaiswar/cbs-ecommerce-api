@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import type { Prisma, ProductStatus } from "../../generated/prisma/client.js";
 import type {
   TBasicInfoDTO,
   TProductColorDTO,
@@ -58,6 +59,46 @@ class ProductRepository {
       where: {
         id,
       },
+      include: {
+        colors: true,
+        sizes: true,
+        brand: true,
+        category: true,
+        images: {
+          include: {
+            media: true,
+          },
+        },
+        variants: true,
+        reviews: true,
+        offers: true,
+        productTags: true,
+        specification: true,
+      },
+    });
+  }
+
+  async getProductBySlug(slug: string) {
+    return await prisma.product.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        colors: true,
+        sizes: true,
+        brand: true,
+        category: true,
+        images: {
+          include: {
+            media: true,
+          },
+        },
+        variants: true,
+        reviews: true,
+        offers: true,
+        productTags: true,
+        specification: true,
+      },
     });
   }
 
@@ -69,13 +110,9 @@ class ProductRepository {
         brandId: payload.brandId,
         categoryId: payload.categoryId,
 
-        tags: {
+        productTags: {
           create: payload.tagIds.map((tagId) => ({
-            tag: {
-              connect: {
-                id: tagId,
-              },
-            },
+            tagId,
           })),
         },
 
@@ -90,6 +127,60 @@ class ProductRepository {
         offerEnds: payload.offerEnds ?? null,
       },
 
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async updateBasicInfo(productId: string, payload: Partial<TBasicInfoDTO>) {
+    const data: Prisma.ProductUpdateInput = {
+      ...Object.fromEntries(
+        Object.entries(payload).filter(([k, v]) => v !== undefined && k !== "tagIds")
+      ),
+    };
+
+    if (payload.tagIds !== undefined) {
+      data.productTags = {
+        deleteMany: {},
+        create: payload.tagIds.map((tagId) => ({
+          tagId,
+        })),
+      };
+    }
+
+    return prisma.product.update({
+      where: {
+        id: productId,
+      },
+      data,
+    });
+  }
+
+  async getProductVariantById(variantId: string) {
+    return prisma.productVariant.findUnique({
+      where: {
+        id: variantId,
+      },
+    });
+  }
+
+  async getProductImageById(imageId: string) {
+    return prisma.productImage.findUnique({
+      where: {
+        id: imageId,
+      },
+      include: {
+        media: true,
+      },
+    });
+  }
+
+  async deleteProduct(productId: string) {
+    return prisma.product.delete({
+      where: {
+        id: productId,
+      },
       select: {
         id: true,
       },
@@ -115,6 +206,14 @@ class ProductRepository {
     });
   }
 
+  async getProductColorById(colorId: string) {
+    return prisma.productColor.findUnique({
+      where: {
+        id: colorId,
+      },
+    });
+  }
+
   async deleteProductColor(colorId: string) {
     return prisma.productColor.delete({
       where: {
@@ -123,6 +222,14 @@ class ProductRepository {
 
       select: {
         id: true,
+      },
+    });
+  }
+
+  async getProductSizesById(sizeId: string) {
+    return prisma.productSize.findUnique({
+      where: {
+        id: sizeId,
       },
     });
   }
@@ -270,6 +377,21 @@ class ProductRepository {
       where: {
         id: specificationId,
         productId,
+      },
+    });
+  }
+
+  async updateProductStatus(productId: string, status: ProductStatus) {
+    return prisma.product.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        status,
+      },
+      select: {
+        id: true,
+        status: true,
       },
     });
   }
