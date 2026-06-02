@@ -12,7 +12,7 @@ interface AppError extends Error {
 export const globalErrorHandler: ErrorRequestHandler = (
   err: AppError,
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   const statusCode = err.statusCode ?? 500;
   const message = err.message || "Internal server error";

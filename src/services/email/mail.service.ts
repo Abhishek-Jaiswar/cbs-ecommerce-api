@@ -38,11 +38,7 @@ class MailService {
   }
 
   async sendResetPasswordOtp(to: string, otp: string) {
-    return this.sendEmail(
-        to,
-        "Reset Your Password - ZenVoraa",
-        resetPasswordOtpTemplate(otp)
-    )
+    return this.sendEmail(to, "Reset Your Password - ZenVoraa", resetPasswordOtpTemplate(otp));
   }
 }
 

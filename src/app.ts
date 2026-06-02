@@ -9,6 +9,13 @@ import { globalErrorHandler } from "./middlewares/error-handler.js";
 import { notFoundHandler } from "./middlewares/not-found.js";
 import { Env } from "./config/env.config.js";
 import authRoutes from "../src/modules/user/user.routes.js";
+import categoryRoutes from "../src/modules/categories/product-category.routes.js";
+import brandRoutes from "../src/modules/brands/brands.routes.js";
+import addressRoutes from "../src/modules/address/address.routes.js";
+import productTagRoutes from "../src/modules/product-tags/product-tags.routes.js";
+import blogTagRoutes from "../src/modules/blog-tags/blog-tags.routes.js";
+import reviewRoutes from "../src/modules/reviews/reviews.routes.js";
+import os from "os";
 
 export const startApp = (): Application => {
   const app = express();
@@ -54,11 +61,29 @@ export const startApp = (): Application => {
 
   app.use(`/api/${Env.API_VERSION}`, apiLimiter);
   app.use(`/api/${Env.API_VERSION}/auth`, authRoutes);
-  
+  app.use(`/api/${Env.API_VERSION}/categories`, categoryRoutes);
+  app.use(`/api/${Env.API_VERSION}/brands`, brandRoutes);
+  app.use(`/api/${Env.API_VERSION}/addresses`, addressRoutes);
+  app.use(`/api/${Env.API_VERSION}/product-tags`, productTagRoutes);
+  app.use(`/api/${Env.API_VERSION}/blog-tags`, blogTagRoutes);
+  app.use(`/api/${Env.API_VERSION}/reviews`, reviewRoutes);
+
   app.get("/", (_req: Request, res: Response) => {
-    return res.send({
+    const load = os.loadavg();
+    const freeMem = os.freemem();
+    const totalMem = os.totalmem();
+
+    return res.status(200).json({
       status: "Working fine",
-      load: "Will be calculated",
+      api: {
+        version: Env.API_VERSION,
+        environment: Env.NODE_ENV,
+      },
+      system: {
+        load,
+        freeMemory: `${Math.round(freeMem / 1024 / 1024)} MB`,
+        totalMemory: `${Math.round(totalMem / 1024 / 1024)} MB`,
+      },
     });
   });
 

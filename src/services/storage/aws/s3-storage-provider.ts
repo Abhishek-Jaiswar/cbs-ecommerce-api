@@ -8,7 +8,6 @@ import {
 import type { IStorageProvider } from "../storage-provider.interface.js";
 import type { StorageAsset } from "../storage.types.js";
 
-
 export class S3StorageProvider implements IStorageProvider {
   constructor(
     private readonly bucket: string,

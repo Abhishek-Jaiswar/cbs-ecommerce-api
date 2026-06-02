@@ -118,8 +118,8 @@ model ProductSpecification {
 
   createdAt DateTime @default(now())
 
-  @@index([productId])
   @@unique([productId, key])
+  @@index([productId])
 }
 
 model Media {
@@ -132,10 +132,7 @@ model Media {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  productImages   ProductImage[]
-  brandImages     ProductBrand[]
-  categoryImages  Category[]
-  blogCoverImages BlogPost[]
+  productImages ProductImage[]
 
   @@index([storageKey])
 }
@@ -224,8 +221,9 @@ model ProductBrand {
   id   String @id @default(cuid())
   name String
 
-  imageId String?
-  image   Media?  @relation(fields: [imageId], references: [id])
+  image      String
+  storageKey String
+  altText    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -242,8 +240,9 @@ model Category {
   name    String
   excerpt String?
 
-  imageId String?
-  image   Media?  @relation(fields: [imageId], references: [id])
+  image      String
+  storageKey String
+  altText    String
 
   isActive Boolean @default(true)
 
@@ -296,8 +295,9 @@ model BlogPost {
   excerpt String?
   content String
 
-  coverImageId String?
-  image        Media?  @relation(fields: [coverImageId], references: [id])
+  image      String
+  storageKey String
+  altText    String
 
   status      BlogStatus @default(DRAFT)
   isFeatured  Boolean    @default(false)

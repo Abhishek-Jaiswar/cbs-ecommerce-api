@@ -7,15 +7,15 @@ export const setAuthCookies = (res: Response, token: string) => {
     secure: !isDevelopment,
     sameSite: isDevelopment ? "lax" : "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/'
+    path: "/",
   });
 };
 
 export const clearAuthCookies = (res: Response) => {
-    res.clearCookie("accessToken",{
+  res.clearCookie("accessToken", {
     httpOnly: true,
     secure: !isDevelopment,
     sameSite: isDevelopment ? "lax" : "none",
-    path: '/'
+    path: "/",
   });
-}
+};

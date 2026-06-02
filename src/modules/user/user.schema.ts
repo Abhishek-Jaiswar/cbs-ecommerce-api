@@ -27,5 +27,8 @@ export const validateNewPassword = z.object({
 
 export const OtpSchema = z.object({
   email: z.string().trim().email({ error: "Valid email is required" }),
-  otp: z.string().trim().regex(/^\d{6}$/, { error: "OTP must be 6 digits" }),
+  otp: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, { error: "OTP must be 6 digits" }),
 });

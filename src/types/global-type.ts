@@ -6,3 +6,9 @@ export type JwtPayload = {
   email: string;
   role: Roles;
 };
+
+export type TMediaDTO = {
+  url: string;
+  storageKey: string;
+  altText?: string;
+};
