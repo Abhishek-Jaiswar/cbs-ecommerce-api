@@ -42,6 +42,16 @@ class ProductService {
     return product;
   }
 
+  async getProductColors(productId: string) {
+    const product = await this.getProductsById(productId);
+    return product.colors;
+  }
+
+  async getProductSizes(productId: string) {
+    const product = await this.getProductsById(productId);
+    return product.sizes;
+  }
+
   async createBasicInfo(payload: TBasicInfoDTO) {
     const category = await productCategoryRepository.getCategoryById(payload.categoryId);
     if (!category) {

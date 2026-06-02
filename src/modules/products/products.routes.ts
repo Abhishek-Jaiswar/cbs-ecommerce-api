@@ -10,6 +10,8 @@ const router: Router = express.Router();
 router.get("/", productController.getProducts);
 router.get("/:id", productController.getProductById);
 router.get("/slug/:slug", productController.getProductBySlug);
+router.get("/:productId/colors", productController.getColors);
+router.get("/:productId/sizes", productController.getSizes);
 
 // Admin-only routes
 router.post("/", requireAuth, requireRole("ADMIN"), productController.createBasicInfo);

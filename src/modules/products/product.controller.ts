@@ -68,6 +68,44 @@ class ProductController {
     }
   }
 
+  async getColors(req: Request, res: Response, next: NextFunction) {
+    try {
+      const productId = req.params.productId as string;
+      if (!productId) {
+        throw new BadRequestError("Product ID is required");
+      }
+
+      const colors = await productService.getProductColors(productId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Product colors fetched successfully",
+        data: colors,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getSizes(req: Request, res: Response, next: NextFunction) {
+    try {
+      const productId = req.params.productId as string;
+      if (!productId) {
+        throw new BadRequestError("Product ID is required");
+      }
+
+      const sizes = await productService.getProductSizes(productId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Product sizes fetched successfully",
+        data: sizes,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async createBasicInfo(req: Request, res: Response, next: NextFunction) {
     try {
       const validation = BasicInfoSchema.safeParse(req.body);

@@ -882,6 +882,32 @@
           "response": []
         },
         {
+          "name": "Get Product Colors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/colors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "colors"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Sizes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/sizes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "sizes"]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Create Product Basic Info (Admin only)",
           "request": {
             "method": "POST",
