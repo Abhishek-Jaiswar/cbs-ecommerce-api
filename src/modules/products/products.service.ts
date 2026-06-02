@@ -217,8 +217,8 @@ class ProductService {
       `products/${payload.productId}`
     );
 
-    const colorPositionMap: Record<string, number> = {};
     const hasExistingPrimary = product.images.some((img) => img.isPrimary);
+    const maxDbPosition = product.images.reduce((max, img) => Math.max(max, img.position), 0);
 
     const newPayload = uploadedImages.map((image, index) => {
       const colorId = payload.colorIds[index];
@@ -226,14 +226,7 @@ class ProductService {
         throw new BadRequestError(`Missing color ID for image at index ${index}`);
       }
 
-      if (colorPositionMap[colorId] === undefined) {
-        const sameColorImages = product.images.filter((img) => img.colorId === colorId);
-        const maxDbPosition = sameColorImages.reduce((max, img) => Math.max(max, img.position), 0);
-        colorPositionMap[colorId] = maxDbPosition;
-      }
-
-      colorPositionMap[colorId] = (colorPositionMap[colorId] ?? 0) + 1;
-      const position = colorPositionMap[colorId];
+      const position = maxDbPosition + index + 1;
 
       return {
         media: {

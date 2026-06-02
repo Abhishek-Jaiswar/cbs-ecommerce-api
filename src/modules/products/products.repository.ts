@@ -68,6 +68,9 @@ class ProductRepository {
           include: {
             media: true,
           },
+          orderBy: {
+            position: "asc",
+          },
         },
         variants: true,
         reviews: true,
@@ -91,6 +94,9 @@ class ProductRepository {
         images: {
           include: {
             media: true,
+          },
+          orderBy: {
+            position: "asc",
           },
         },
         variants: true,
