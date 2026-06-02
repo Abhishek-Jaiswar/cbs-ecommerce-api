@@ -25,5 +25,5 @@ export type TProductImageUpload = {
 export type TImageUpload = {
   images: Express.Multer.File[];
   productId: string;
-  colorId: string;
+  colorIds: string[];
 };

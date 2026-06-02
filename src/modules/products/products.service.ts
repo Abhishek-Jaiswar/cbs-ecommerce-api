@@ -195,10 +195,20 @@ class ProductService {
       throw new NotFoundError("Product not found");
     }
 
-    if (payload.colorId) {
-      const colorExists = product.colors.some((c) => c.id === payload.colorId);
+    if (payload.images.length !== payload.colorIds.length) {
+      throw new BadRequestError(
+        "The number of uploaded files must match the number of color IDs provided"
+      );
+    }
+
+    // Verify all color IDs are valid for this product
+    for (const colorId of payload.colorIds) {
+      if (!colorId) {
+        throw new BadRequestError("Color ID is required for every uploaded image");
+      }
+      const colorExists = product.colors.some((c) => c.id === colorId);
       if (!colorExists) {
-        throw new BadRequestError("Specified color does not exist for this product");
+        throw new BadRequestError(`Specified color ID ${colorId} does not exist for this product`);
       }
     }
 
@@ -207,22 +217,37 @@ class ProductService {
       `products/${payload.productId}`
     );
 
-    const targetColorId = payload.colorId || null;
-    const sameColorImages = product.images.filter((img) => img.colorId === targetColorId);
-    const maxPosition = sameColorImages.reduce((max, img) => Math.max(max, img.position), 0);
+    const colorPositionMap: Record<string, number> = {};
+    const hasExistingPrimary = product.images.some((img) => img.isPrimary);
 
-    const newPayload = uploadedImages.map((image, index) => ({
-      media: {
-        url: image.url,
-        storageKey: image.storageKey,
-      },
-      productImage: {
-        productId: payload.productId,
-        colorId: targetColorId,
-        position: maxPosition + index + 1,
-        isPrimary: product.images.length === 0 && index === 0,
-      },
-    }));
+    const newPayload = uploadedImages.map((image, index) => {
+      const colorId = payload.colorIds[index];
+      if (!colorId) {
+        throw new BadRequestError(`Missing color ID for image at index ${index}`);
+      }
+
+      if (colorPositionMap[colorId] === undefined) {
+        const sameColorImages = product.images.filter((img) => img.colorId === colorId);
+        const maxDbPosition = sameColorImages.reduce((max, img) => Math.max(max, img.position), 0);
+        colorPositionMap[colorId] = maxDbPosition;
+      }
+
+      colorPositionMap[colorId] = (colorPositionMap[colorId] ?? 0) + 1;
+      const position = colorPositionMap[colorId];
+
+      return {
+        media: {
+          url: image.url,
+          storageKey: image.storageKey,
+        },
+        productImage: {
+          productId: payload.productId,
+          colorId,
+          position,
+          isPrimary: !hasExistingPrimary && index === 0,
+        },
+      };
+    });
 
     const uploaded = await productRepository.uploadProductImageMedia(newPayload);
     await productCache.invalidateProducts(payload.productId);
@@ -240,7 +265,11 @@ class ProductService {
       throw new BadRequestError("Product image does not belong to this product");
     }
 
-    await productRepository.deleteMedia(image.mediaId);
+    await productRepository.deleteProductImageAndPromote(
+      image.mediaId,
+      productId,
+      image.isPrimary
+    );
 
     if (image.media.storageKey) {
       await uploadService.delete(image.media.storageKey).catch((err) => {
@@ -251,15 +280,20 @@ class ProductService {
     await productCache.invalidateProducts(image.productId);
   }
 
-  async createProductSpecifications(productId: string, specifications: TProductSpecificationDTO[]) {
+  async createProductSpecifications(
+    productId: string,
+    specifications: TProductSpecificationDTO[],
+    status?: ProductStatus
+  ) {
     const product = await productRepository.getProductById(productId);
     if (!product) {
       throw new NotFoundError("Product not found");
     }
 
-    const created = await productRepository.createManyProductSpecifications(
+    const created = await productRepository.createSpecificationsAndMaybeUpdateStatus(
       productId,
-      specifications
+      specifications,
+      status
     );
     await productCache.invalidateProducts(productId);
 

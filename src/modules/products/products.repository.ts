@@ -326,6 +326,38 @@ class ProductRepository {
     });
   }
 
+  async deleteProductImageAndPromote(mediaId: string, productId: string, isPrimary: boolean) {
+    return prisma.$transaction(async (tx) => {
+      await tx.media.delete({
+        where: {
+          id: mediaId,
+        },
+      });
+
+      if (isPrimary) {
+        const firstRemaining = await tx.productImage.findFirst({
+          where: {
+            productId,
+          },
+          orderBy: {
+            position: "asc",
+          },
+        });
+
+        if (firstRemaining) {
+          await tx.productImage.update({
+            where: {
+              id: firstRemaining.id,
+            },
+            data: {
+              isPrimary: true,
+            },
+          });
+        }
+      }
+    });
+  }
+
   async deleteManyMedia(mediaIds: string[]) {
     return prisma.media.deleteMany({
       where: {
@@ -358,6 +390,39 @@ class ProductRepository {
         value: spec.value,
       })),
       skipDuplicates: true,
+    });
+  }
+
+  async createSpecificationsAndMaybeUpdateStatus(
+    productId: string,
+    specifications: TProductSpecificationDTO[],
+    status?: ProductStatus
+  ) {
+    return prisma.$transaction(async (tx) => {
+      let created = null;
+      if (specifications.length > 0) {
+        created = await tx.productSpecification.createMany({
+          data: specifications.map((spec) => ({
+            productId,
+            key: spec.key,
+            value: spec.value,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
+      if (status) {
+        await tx.product.update({
+          where: {
+            id: productId,
+          },
+          data: {
+            status,
+          },
+        });
+      }
+
+      return created;
     });
   }
 

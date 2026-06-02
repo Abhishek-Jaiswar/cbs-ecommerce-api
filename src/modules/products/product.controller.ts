@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import z from "zod";
 import { BadRequestError } from "../../utils/errors/app-error.js";
 import { productService } from "./products.service.js";
+import type { ProductStatus } from "../../generated/prisma/client.js";
 import {
   BasicInfoSchema,
   productColorSchema,
@@ -323,12 +324,24 @@ class ProductController {
         throw new BadRequestError("No files uploaded");
       }
 
-      const colorId = req.body.colorId as string | undefined;
+      const rawColorIds = req.body.colorId || req.body.colorIds;
+      let colorIds: string[] = [];
+
+      if (Array.isArray(rawColorIds)) {
+        colorIds = rawColorIds;
+      } else if (rawColorIds) {
+        colorIds = [rawColorIds];
+      }
+
+      // If a single colorId is provided for multiple files, expand it to match all files
+      if (colorIds.length === 1 && files.length > 1) {
+        colorIds = Array(files.length).fill(colorIds[0]);
+      }
 
       const uploaded = await productService.uploadProductImage({
         images: files,
         productId,
-        colorId: colorId || "",
+        colorIds,
       });
 
       return res.status(201).json({
@@ -353,12 +366,15 @@ class ProductController {
         throw new BadRequestError("No file uploaded");
       }
 
-      const colorId = req.body.colorId as string | undefined;
+      const colorId = (req.body.colorId || req.body.colorIds) as string | undefined;
+      if (!colorId) {
+        throw new BadRequestError("Color ID is required");
+      }
 
       const uploaded = await productService.uploadProductImage({
         images: [file],
         productId,
-        colorId: colorId || "",
+        colorIds: [colorId],
       });
 
       return res.status(201).json({
@@ -397,7 +413,14 @@ class ProductController {
         throw new BadRequestError("Product ID is required");
       }
 
-      const schema = z.array(productSpecificationSchema);
+      const schema = z.union([
+        z.array(productSpecificationSchema),
+        z.object({
+          specifications: z.array(productSpecificationSchema),
+          status: z.enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"]).optional(),
+        }),
+      ]);
+
       const validation = schema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
@@ -407,11 +430,23 @@ class ProductController {
         });
       }
 
-      const created = await productService.createProductSpecifications(productId, validation.data);
+      let specs: any[] = [];
+      let status: ProductStatus | undefined = undefined;
+
+      if (Array.isArray(validation.data)) {
+        specs = validation.data;
+      } else {
+        specs = validation.data.specifications;
+        status = validation.data.status as ProductStatus;
+      }
+
+      const created = await productService.createProductSpecifications(productId, specs, status);
 
       return res.status(201).json({
         success: true,
-        message: "Product specifications created successfully",
+        message: status
+          ? `Product specifications created and product status updated to ${status} successfully`
+          : "Product specifications created successfully",
         data: created,
       });
     } catch (error) {
