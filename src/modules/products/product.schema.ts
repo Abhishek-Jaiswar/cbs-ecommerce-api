@@ -10,6 +10,7 @@ export const BasicInfoSchema = z.object({
 
   brandId: z.string().cuid("Brand is required"),
   categoryId: z.string().cuid("Category is required"),
+  tagIds: z.array(z.string().cuid()).default([]),
 
   excerpt: z.string().min(1, "Product excerpt is required"),
   description: z.string().min(1, "Product description is required"),
@@ -62,28 +63,10 @@ export const productVariantSchema = z.object({
   stock: z.coerce.number().int().min(0),
 });
 
-export const productSpecificationSchema = z
-  .object({
-    specifications: z
-      .array(
-        z.object({
-          key: z.string().trim().min(1),
-          value: z.string().trim().min(1),
-        })
-      )
-      .min(1),
-  })
-  .refine(
-    (data) => {
-      const keys = data.specifications.map((s) => s.key.toLowerCase());
-
-      return new Set(keys).size === keys.length;
-    },
-    {
-      message: "Duplicate specification keys are not allowed",
-      path: ["specifications"],
-    }
-  );
+export const productSpecificationSchema = z.object({
+  key: z.string().trim().min(1, "Specification key is required"),
+  value: z.string().trim().min(1, "Specification value is required"),
+});
 
 export type TBasicInfoDTO = z.infer<typeof BasicInfoSchema>;
 export type TProductColorDTO = z.infer<typeof productColorSchema>;
@@ -91,6 +74,10 @@ export type TProductSizeDTO = z.infer<typeof productSizeSchema>;
 export type TProductImageUploadDTO = z.infer<typeof productImageUploadSchema>;
 export type TProductVariantDTO = z.infer<typeof productVariantSchema>;
 export type TProductSpecificationDTO = z.infer<typeof productSpecificationSchema>;
+
+export type TProductVariantWithSku = TProductVariantDTO & {
+  sku: string;
+};
 
 // import { nanoid } from "nanoid";
 
