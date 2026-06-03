@@ -31,6 +31,9 @@ RUN pnpm prune --prod
 # ==========================================
 FROM node:22-alpine AS runner
 
+# Create directory and assign ownership to node user before shifting user
+RUN mkdir -p /app && chown -R node:node /app
+
 WORKDIR /app
 
 ENV NODE_ENV=production
