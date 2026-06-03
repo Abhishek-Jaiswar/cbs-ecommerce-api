@@ -56,6 +56,9 @@ importers:
       nodemailer:
         specifier: ^8.0.9
         version: 8.0.9
+      prisma:
+        specifier: ^7.8.0
+        version: 7.8.0(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
       winston:
         specifier: ^3.19.0
         version: 3.19.0
@@ -96,9 +99,6 @@ importers:
       prettier:
         specifier: 3.8.3
         version: 3.8.3
-      prisma:
-        specifier: ^7.8.0
-        version: 7.8.0(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
       tsx:
         specifier: ^4.20.3
         version: 4.22.2
