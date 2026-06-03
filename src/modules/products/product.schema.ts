@@ -8,7 +8,7 @@ export const BasicInfoSchema = z.object({
     .min(1, "Product slug is required")
     .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
 
-  brandId: z.string().cuid("Brand is required"),
+  brandId: z.string().cuid().nullable().optional(),
   categoryId: z.string().cuid("Category is required"),
   tagIds: z.array(z.string().cuid()).default([]),
 

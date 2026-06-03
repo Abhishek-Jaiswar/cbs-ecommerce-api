@@ -35,7 +35,10 @@ class ProductService {
   }
 
   async getProductBySlug(slug: string) {
-    const product = await productRepository.getProductBySlug(slug);
+    const product = await productCache.getOrSetProductDetails(slug, () =>
+      productRepository.getProductBySlug(slug)
+    );
+    
     if (!product) {
       throw new NotFoundError("Product not found");
     }
@@ -58,9 +61,11 @@ class ProductService {
       throw new BadRequestError("Category is invalid");
     }
 
-    const brand = await brandRepository.getBrandsById(payload.brandId);
-    if (!brand) {
-      throw new BadRequestError("Brand is invalid");
+    if (payload.brandId) {
+      const brand = await brandRepository.getBrandsById(payload.brandId);
+      if (!brand) {
+        throw new BadRequestError("Brand is invalid");
+      }
     }
 
     const slug = await productRepository.getProductBySlug(payload.slug);
@@ -258,11 +263,7 @@ class ProductService {
       throw new BadRequestError("Product image does not belong to this product");
     }
 
-    await productRepository.deleteProductImageAndPromote(
-      image.mediaId,
-      productId,
-      image.isPrimary
-    );
+    await productRepository.deleteProductImageAndPromote(image.mediaId, productId, image.isPrimary);
 
     if (image.media.storageKey) {
       await uploadService.delete(image.media.storageKey).catch((err) => {

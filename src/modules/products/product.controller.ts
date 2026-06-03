@@ -11,6 +11,7 @@ import {
   productSpecificationSchema,
   productStatusSchema,
   type TBasicInfoDTO,
+  type TProductSpecificationDTO,
 } from "./product.schema.js";
 
 class ProductController {
@@ -430,7 +431,7 @@ class ProductController {
         });
       }
 
-      let specs: any[] = [];
+      let specs: TProductSpecificationDTO[] = [];
       let status: ProductStatus | undefined = undefined;
 
       if (Array.isArray(validation.data)) {

@@ -87,23 +87,93 @@ class ProductRepository {
         slug,
       },
       include: {
-        colors: true,
-        sizes: true,
-        brand: true,
-        category: true,
+        colors: {
+          omit: {
+            productId: true,
+          },
+        },
+        sizes: {
+          omit: {
+            productId: true,
+          },
+        },
+        brand: {
+          omit: {
+            createdAt: true,
+            updatedAt: true,
+            storageKey: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            image: true,
+            altText: true,
+          },
+        },
         images: {
+          omit: {
+            mediaId: true,
+            productId: true,
+          },
           include: {
-            media: true,
+            media: {
+              select: {
+                id: true,
+                url: true,
+                altText: true,
+              },
+            },
           },
           orderBy: {
             position: "asc",
           },
         },
-        variants: true,
-        reviews: true,
-        offers: true,
-        productTags: true,
-        specification: true,
+        variants: {
+          select: {
+            id: true,
+            sku: true,
+            stock: true,
+            price: true,
+            size: {
+              select: {
+                id: true,
+                value: true,
+              },
+            },
+            color: {
+              select: {
+                id: true,
+                name: true,
+                hex: true,
+              },
+            },
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        productTags: {
+          omit: {
+            productId: true,
+            tagId: true,
+          },
+          include: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+        specification: {
+          omit: {
+            productId: true,
+          },
+        },
       },
     });
   }
@@ -113,7 +183,7 @@ class ProductRepository {
       data: {
         name: payload.name,
         slug: payload.slug,
-        brandId: payload.brandId,
+        brandId: payload.brandId ?? null,
         categoryId: payload.categoryId,
 
         productTags: {

@@ -63,7 +63,7 @@ model Product {
   name String
   slug String @unique
 
-  brandId    String
+  brandId    String?
   categoryId String
 
   excerpt     String
@@ -81,7 +81,7 @@ model Product {
 
   status ProductStatus @default(DRAFT)
 
-  brand    ProductBrand @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  brand    ProductBrand? @relation(fields: [brandId], references: [id], onDelete: Restrict)
   category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   images   ProductImage[]

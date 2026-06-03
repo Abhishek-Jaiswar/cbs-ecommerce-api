@@ -3,7 +3,7 @@ import type { TCreateBrand, TUpdateBrandImage } from "./brands.types.js";
 
 class BrandRepository {
   async getBrands(page: number, limit: number) {
-    const [itmes, total] = await prisma.$transaction([
+    const [items, total] = await prisma.$transaction([
       prisma.productBrand.findMany({
         skip: (page - 1) * limit,
         take: limit,
@@ -23,7 +23,7 @@ class BrandRepository {
     ]);
 
     return {
-      itmes,
+      items,
       total,
       page,
       limit,
