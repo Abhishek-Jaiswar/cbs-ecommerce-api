@@ -1,36 +1,48 @@
+# ==========================================
+# Stage 1: Build & Prune Dependencies
+# ==========================================
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-
+# Enable pnpm
 RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
 
-RUN pnpm install
+# Copy manifest files first to leverage Docker layer caching
+COPY package.json pnpm-lock.yaml ./
 
+# Install ALL dependencies (including devDependencies needed for build)
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the source code
 COPY . .
 
-ARG DATABASE_URL
+# Generate Prisma Client & compile TypeScript
+ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 ENV DATABASE_URL=${DATABASE_URL}
-
 RUN pnpm prisma generate
 RUN pnpm build
 
-FROM node:22-alpine
+# Prune devDependencies in-place, leaving only production packages in node_modules
+RUN pnpm prune --prod
+
+# ==========================================
+# Stage 2: Ultra-lightweight Production Runner
+# ==========================================
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+ENV NODE_ENV=production
 
-RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
+# Set security best-practice non-root user
+USER node
 
-RUN pnpm install --prod
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
+# Copy only the compiled JS, the production node_modules, and prisma schema
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/prisma ./prisma
 
 EXPOSE 3000
 
 CMD ["node", "dist/src/index.js"]
-
-# docker build --build-arg DATABASE_URL=dummy --no-cache -t cb-server .
