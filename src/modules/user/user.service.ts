@@ -10,6 +10,7 @@ import {
 import { userCache } from "./user.cache.js";
 import crypto from "crypto";
 import { emailService } from "../../services/email/mail.service.js";
+import { logger } from "../../lib/winston.js";
 
 class UserService {
   async registerService(payload: TUserPayload) {
@@ -87,6 +88,7 @@ class UserService {
 
     const { otp, hashedOtp } = await this.generateHashedOtp();
     await userCache.setUserOtp(email, hashedOtp);
+    logger.info(`[DEBUG OTP] Password Reset OTP for ${email}: ${otp}`);
     await emailService.sendResetPasswordOtp(email, otp);
   }
 
@@ -208,6 +210,7 @@ class UserService {
     const { otp, hashedOtp } = await this.generateHashedOtp();
 
     await userCache.setEmailVerificationOtp(email, hashedOtp);
+    logger.info(`[DEBUG OTP] Email Verification OTP for ${email}: ${otp}`);
     await emailService.sendOtpEmail(email, otp);
   }
 
