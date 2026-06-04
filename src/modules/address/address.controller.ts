@@ -172,6 +172,23 @@ class AddressController {
       next(error);
     }
   }
+
+  async getAllAddresses(req: Request, res: Response, next: NextFunction) {
+    try {
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+
+      const result = await addressService.getAllAddresses(page, limit);
+
+      return res.status(200).json({
+        success: true,
+        message: "All addresses fetched successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const addressController = new AddressController();

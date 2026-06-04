@@ -19,4 +19,9 @@ router.post("/forgot-password/request-otp", userController.requestPasswordResetO
 router.post("/forgot-password/verify-otp", userController.requestOtpVerification);
 router.put("/forgot-password/reset-password", userController.resetPassword);
 
+// Administrative Routes
+router.get("/:id", requireAuth, requireRole("ADMIN"), userController.getUserById);
+router.patch("/:id/role", requireAuth, requireRole("ADMIN"), userController.updateUserRole);
+router.delete("/:id", requireAuth, requireRole("ADMIN"), userController.deleteUser);
+
 export default router;

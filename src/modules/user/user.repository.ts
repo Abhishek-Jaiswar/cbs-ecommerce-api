@@ -126,6 +126,30 @@ class UserRepository {
       },
     });
   }
+
+  async updateUser(userId: string, data: { name?: string; role?: "USER" | "ADMIN"; emailVerified?: boolean }) {
+    return prisma.user.update({
+      where: { id: userId },
+      data,
+      omit: { password: true },
+    });
+  }
+
+  async deleteUser(userId: string) {
+    return prisma.user.delete({
+      where: { id: userId },
+    });
+  }
+
+  async getUserById(userId: string) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        addresses: true,
+      },
+      omit: { password: true },
+    });
+  }
 }
 
 export const userRepository = new UserRepository();

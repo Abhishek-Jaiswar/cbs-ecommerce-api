@@ -229,6 +229,34 @@ class UserService {
   private generateOtp() {
     return crypto.randomInt(0, 1000000).toString().padStart(6, "0");
   }
+
+  async getUserById(userId: string) {
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      throw new NotFoundError("User not found.");
+    }
+    return user;
+  }
+
+  async updateUserRole(userId: string, role: "USER" | "ADMIN") {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundError("User not found.");
+    }
+    const updated = await userRepository.updateUser(userId, { role });
+    await userCache.invalidateUser(userId);
+    return updated;
+  }
+
+  async deleteUser(userId: string) {
+    const user = await userRepository.findUserById(userId);
+    if (!user) {
+      throw new NotFoundError("User not found.");
+    }
+    await userRepository.deleteUser(userId);
+    await userCache.invalidateUser(userId);
+    return { id: userId, success: true };
+  }
 }
 
 export const userService = new UserService();

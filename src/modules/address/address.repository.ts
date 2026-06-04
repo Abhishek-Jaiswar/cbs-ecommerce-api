@@ -77,6 +77,36 @@ class AddressRepository {
       },
     });
   }
+
+  async getAllAddresses(page: number, limit: number) {
+    const [items, total] = await prisma.$transaction([
+      prisma.address.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.address.count(),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 }
 
 export const addressRepository = new AddressRepository();

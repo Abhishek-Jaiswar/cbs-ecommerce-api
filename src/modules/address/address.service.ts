@@ -63,6 +63,10 @@ class AddressService {
     await addressCache.invalidateAddress(id, address.userId);
     return { id, success: true };
   }
+
+  async getAllAddresses(page: number, limit: number) {
+    return addressRepository.getAllAddresses(page, limit);
+  }
 }
 
 export const addressService = new AddressService();

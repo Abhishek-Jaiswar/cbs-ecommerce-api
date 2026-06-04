@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { addressController } from "./address.controller.js";
 import { requireAuth } from "../../middlewares/require-auth.js";
+import { requireRole } from "../../middlewares/require-role.js";
 
 const router: Router = express.Router();
 
@@ -8,6 +9,7 @@ const router: Router = express.Router();
 router.use(requireAuth);
 
 router.get("/", addressController.getMyAddresses);
+router.get("/admin/get-all", requireRole("ADMIN"), addressController.getAllAddresses);
 router.get("/:id", addressController.getAddressById);
 router.post("/", addressController.createAddress);
 router.put("/:id", addressController.updateAddress);

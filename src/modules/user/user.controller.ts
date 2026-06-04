@@ -250,6 +250,59 @@ class UserController {
       next(error);
     }
   }
+
+  async getUserById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const user = await userService.getUserById(id);
+
+      return res.status(200).json({
+        success: true,
+        message: "User details fetched successfully",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateUserRole(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const { role } = req.body;
+
+      if (role !== "USER" && role !== "ADMIN") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid role value",
+        });
+      }
+
+      const user = await userService.updateUserRole(id, role);
+
+      return res.status(200).json({
+        success: true,
+        message: "User role updated successfully",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      await userService.deleteUser(id);
+
+      return res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const userController = new UserController();
