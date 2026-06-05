@@ -148,6 +148,26 @@ class ReviewController {
       next(error);
     }
   }
+
+  async getAllReviews(req: Request, res: Response, next: NextFunction) {
+    try {
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+      const search = (req.query.search as string) || "";
+      const rating = req.query.rating ? Number(req.query.rating) : undefined;
+
+      const result = await reviewService.getAllReviews(page, limit, search, rating);
+
+      return res.status(200).json({
+        success: true,
+        message: "All reviews fetched successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const reviewController = new ReviewController();
+

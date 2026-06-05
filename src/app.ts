@@ -16,6 +16,10 @@ import productTagRoutes from "../src/modules/product-tags/product-tags.routes.js
 import blogTagRoutes from "../src/modules/blog-tags/blog-tags.routes.js";
 import reviewRoutes from "../src/modules/reviews/reviews.routes.js";
 import productRoutes from "../src/modules/products/products.routes.js";
+import cartRoutes from "../src/modules/cart/cart.routes.js";
+import wishlistRoutes from "../src/modules/wishlist/wishlist.routes.js";
+import couponRoutes from "../src/modules/coupons/coupon.routes.js";
+import offerRoutes from "../src/modules/offers/offer.routes.js";
 import os from "os";
 
 export const startApp = (): Application => {
@@ -69,6 +73,10 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/blog-tags`, blogTagRoutes);
   app.use(`/api/${Env.API_VERSION}/reviews`, reviewRoutes);
   app.use(`/api/${Env.API_VERSION}/products`, productRoutes);
+  app.use(`/api/${Env.API_VERSION}/cart`, cartRoutes);
+  app.use(`/api/${Env.API_VERSION}/wishlist`, wishlistRoutes);
+  app.use(`/api/${Env.API_VERSION}/coupons`, couponRoutes);
+  app.use(`/api/${Env.API_VERSION}/offers`, offerRoutes);
 
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();

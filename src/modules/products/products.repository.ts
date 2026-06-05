@@ -31,6 +31,7 @@ class ProductRepository {
           isSale: true,
           offerEnds: true,
           forListing: true,
+          categoryId: true,
         },
         orderBy: {
           createdAt: "desc",

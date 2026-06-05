@@ -73,6 +73,69 @@ class ReviewRepository {
       },
     });
   }
+
+  async getAllReviews(page: number, limit: number, search: string, rating?: number) {
+    const whereClause: any = {};
+
+    if (rating !== undefined && !isNaN(rating)) {
+      whereClause.rating = rating;
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { comment: { contains: search, mode: "insensitive" } },
+        { user: { name: { contains: search, mode: "insensitive" } } },
+        { user: { email: { contains: search, mode: "insensitive" } } },
+        { product: { name: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+
+    const [items, total] = await prisma.$transaction([
+      prisma.review.findMany({
+        where: whereClause,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          product: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              images: {
+                take: 1,
+                include: {
+                  media: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+
+      prisma.review.count({
+        where: whereClause,
+      }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 }
 
 export const reviewRepository = new ReviewRepository();
+

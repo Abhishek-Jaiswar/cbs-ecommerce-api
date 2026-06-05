@@ -112,6 +112,11 @@ class ReviewService {
 
     return { id, success: true };
   }
+
+  async getAllReviews(page: number, limit: number, search: string, rating?: number) {
+    return reviewRepository.getAllReviews(page, limit, search, rating);
+  }
 }
 
 export const reviewService = new ReviewService();
+
