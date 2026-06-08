@@ -30,6 +30,35 @@ class CartRepository {
     });
   }
 
+  async findUserCartByUserId(userId: string) {
+    return prisma.cart.findUnique({
+      where: {
+        userId,
+      },
+      include: {
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: {
+                  include: {
+                    images: {
+                      include: {
+                        media: true,
+                      },
+                    },
+                  },
+                },
+                color: true,
+                size: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findOrCreateCart(userId: string) {
     let cart = await prisma.cart.findUnique({
       where: { userId },

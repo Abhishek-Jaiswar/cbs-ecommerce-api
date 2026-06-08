@@ -1,12 +1,13 @@
 import { prisma } from "../../lib/prisma.js";
-import type { TCartItem, TCreateOrder } from "./order.types.js";
+import crypto from "node:crypto";
+import type { TCartItemWithDetails, TCreateOrderDTO } from "./order.types.js";
 
-class OrderReposity {
+class OrderRepository {
   async findOrders(page: number, limit: number) {
     const [items, total] = await prisma.$transaction([
       prisma.order.findMany({
-        take: (page - 1) * limit,
-        skip: limit,
+        skip: (page - 1) * limit,
+        take: limit,
         orderBy: {
           createdAt: "desc",
         },
@@ -20,7 +21,7 @@ class OrderReposity {
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPage: Math.ceil(total / limit),
     };
   }
 
@@ -29,60 +30,58 @@ class OrderReposity {
       where: {
         id: orderId,
       },
+    });
+  }
 
+  async findUserOrdersByUserId(userId: string) {
+    return prisma.order.findMany({
+      where: {
+        userId,
+      },
       include: {
         orderItems: true,
       },
     });
   }
 
-  async findUserOrderByUserId(userId: string, page: number, limit: number) {
-    const [items, total] = await prisma.$transaction([
-      prisma.order.findMany({
-        where: {
-          userId,
-        },
-        take: (page - 1) * limit,
-        skip: limit,
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          orderItems: true,
-        },
-      }),
-
-      prisma.order.count(),
-    ]);
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+  async findCartByUser(userId: string) {
+    return prisma.cart.findUnique({
+      where: {
+        userId,
+      },
+      include: {
+        items: true,
+      },
+    });
   }
 
-  async createPendingOrder(userId: string, payload: TCreateOrder, cartItems: TCartItem[]) {
+  generateOrderNumber() {
+    return `ZV-${new Date().getFullYear()}-${crypto.randomInt(100000, 999999)}`;
+  }
+
+  async createPendingOrder(userId: string, payload: TCreateOrderDTO, cartItems: TCartItemWithDetails[]) {
     return prisma.$transaction(async (tx) => {
-      const { shippingAddress: shippingAdd } = payload;
-      if (!shippingAdd) {
+      const orderNumber = this.generateOrderNumber();
+      const { shippingAddress } = payload;
+
+      if (!shippingAddress) {
         throw new Error("Shipping address is required to place an order");
       }
+
+      // 1. Create the Order
       const order = await tx.order.create({
         data: {
+          orderNumber,
           userId,
-          orderNumber: payload.orderNumber,
-          fullname: shippingAdd.fullname,
-          phoneNumber: shippingAdd.phoneNumber,
-          addressLine1: shippingAdd.addressLine1,
-          addressLine2: shippingAdd.addressLine2 ?? null,
-          landmark: shippingAdd.landmark ?? null,
-          city: shippingAdd.city,
-          state: shippingAdd.state,
-          postalCode: shippingAdd.postalCode,
-          country: shippingAdd.country,
+          fullname: shippingAddress.fullname,
+          phoneNumber: shippingAddress.phoneNumber,
+          addressLine1: shippingAddress.addressLine1,
+          addressLine2: shippingAddress.addressLine2 ?? null,
+          landmark: shippingAddress.landmark ?? null,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country,
           subtotalAmount: payload.subTotal,
           shippingAmount: payload.shippingAmount,
           taxAmount: payload.tax,
@@ -93,43 +92,43 @@ class OrderReposity {
         },
       });
 
-      await tx.orderItem.createMany({
+      // 2. Create Order Items snapshot
+      const orderItems = await tx.orderItem.createMany({
         data: cartItems.map((item) => ({
           orderId: order.id,
-          productId: item.productId,
+          productId: item.variant.product.id,
           variantId: item.variantId,
-          name: item.name,
-          sku: item.sku,
-          image: item.image,
+          name: item.variant.product.name,
+          sku: item.variant.sku,
+          image: item.variant.product.images[0]?.media.url || "",
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
+          unitPrice: item.variant.price || item.variant.product.price,
+          totalPrice: Number(item.variant.price || item.variant.product.price) * item.quantity,
         })),
       });
 
+      // 3. Create the initial Payment record
       const payment = await tx.payment.create({
         data: {
           orderId: order.id,
           provider: payload.paymentProvider,
           method: payload.paymentMethod,
-          amount: payload.total,
           status: "PENDING",
+          amount: payload.total,
         },
       });
 
+      // 4. Create coupon redemption record and update coupon redeemed count if coupon was used
       if (payload.couponCode) {
         const coupon = await tx.coupon.findUnique({
-          where: {
-            code: payload.couponCode.toUpperCase(),
-          },
+          where: { code: payload.couponCode.toUpperCase() },
         });
-
         if (coupon) {
           await tx.couponRedemption.create({
             data: {
-              orderId: order.id,
               couponId: coupon.id,
               userId,
+              orderId: order.id,
               codeSnapshot: coupon.code,
               discountType: coupon.discountType,
               discountValue: coupon.discountValue,
@@ -138,9 +137,7 @@ class OrderReposity {
           });
 
           await tx.coupon.update({
-            where: {
-              id: coupon.id,
-            },
+            where: { id: coupon.id },
             data: {
               redeemedCount: {
                 increment: 1,
@@ -155,20 +152,19 @@ class OrderReposity {
   }
 
   async fulfillOrderStockAndClearCart(
+    userId: string,
     cartId: string,
-    orderItem: { variantId: string | null; quantity: number }[]
+    orderItems: { variantId: string | null; quantity: number }[]
   ) {
     return prisma.$transaction(async (tx) => {
-      for (const item of orderItem) {
+      for (const item of orderItems) {
         if (item.variantId) {
           await tx.productVariant.update({
             where: {
               id: item.variantId,
             },
             data: {
-              stock: {
-                decrement: item.quantity,
-              },
+              stock: { decrement: item.quantity },
             },
           });
         }
@@ -176,11 +172,11 @@ class OrderReposity {
 
       await tx.cartItem.deleteMany({
         where: {
-          id: cartId,
+          cartId,
         },
       });
     });
   }
 }
 
-export const orderRepository = new OrderReposity();
+export const orderRepository = new OrderRepository();

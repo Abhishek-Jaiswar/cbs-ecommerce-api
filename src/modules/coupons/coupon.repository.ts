@@ -129,10 +129,7 @@ class CouponRepository {
     });
   }
 
-  async incrementRedeemedCount(
-    tx: Prisma.TransactionClient | undefined | null,
-    couponId: string
-  ) {
+  async incrementRedeemedCount(tx: Prisma.TransactionClient | undefined | null, couponId: string) {
     const db = tx || prisma;
     return db.coupon.update({
       where: {
@@ -184,6 +181,14 @@ class CouponRepository {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findRedemptionById(userId: string) {
+    return prisma.couponRedemption.findMany({
+      where: {
+        userId,
+      },
+    });
   }
 }
 
