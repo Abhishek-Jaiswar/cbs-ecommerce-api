@@ -1,12 +1,13 @@
 import { prisma } from "../../lib/prisma.js";
+import type { Prisma } from "../../generated/prisma/client.js";
 import type { TCartItem, TCreateOrder } from "./order.types.js";
 
 class OrderReposity {
   async findOrders(page: number, limit: number) {
     const [items, total] = await prisma.$transaction([
       prisma.order.findMany({
-        take: (page - 1) * limit,
-        skip: limit,
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: {
           createdAt: "desc",
         },
@@ -32,6 +33,7 @@ class OrderReposity {
 
       include: {
         orderItems: true,
+        payments: true,
       },
     });
   }
@@ -42,8 +44,8 @@ class OrderReposity {
         where: {
           userId,
         },
-        take: (page - 1) * limit,
-        skip: limit,
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: {
           createdAt: "desc",
         },
@@ -74,6 +76,7 @@ class OrderReposity {
         data: {
           userId,
           orderNumber: payload.orderNumber,
+          trackingNumber: payload.trackingNumber,
           fullname: shippingAdd.fullname,
           phoneNumber: shippingAdd.phoneNumber,
           addressLine1: shippingAdd.addressLine1,
@@ -99,7 +102,7 @@ class OrderReposity {
           productId: item.productId,
           variantId: item.variantId,
           name: item.name,
-          sku: item.sku,
+          sku: item.sku ?? null,
           image: item.image,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
@@ -176,9 +179,51 @@ class OrderReposity {
 
       await tx.cartItem.deleteMany({
         where: {
-          id: cartId,
+          cartId: cartId,
         },
       });
+    });
+  }
+
+  async updateOrder(orderId: string, data: Prisma.OrderUpdateInput) {
+    return prisma.order.update({
+      where: {
+        id: orderId,
+      },
+      data,
+    });
+  }
+
+  async cancelOrder(
+    orderId: string,
+    needsStockRelease: boolean,
+    orderItems: { variantId: string | null; quantity: number }[]
+  ) {
+    return prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: "CANCELLED",
+          cancelledAt: new Date(),
+        },
+      });
+
+      if (needsStockRelease) {
+        for (const item of orderItems) {
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: {
+                stock: {
+                  increment: item.quantity,
+                },
+              },
+            });
+          }
+        }
+      }
+
+      return order;
     });
   }
 }

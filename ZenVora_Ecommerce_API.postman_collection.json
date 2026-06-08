@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "29680e5d-80c9-40d0-a234-8d76e9120b9d",
+    "_postman_id": "cfdaa0b4-c201-447b-aa0b-f53d26042fc7",
     "name": "ZenVora Ecommerce API",
     "description": "Postman collection for testing the CBS Ecommerce / ZenVora Express API modules (Authentication, Categories, Brands, Addresses, Product Tags, Blog Tags, and Reviews).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -17,8 +17,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/get-me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "get-me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "get-me"
+              ]
             }
           },
           "response": []
@@ -30,8 +37,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/auth/get-all?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "get-all"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "get-all"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -53,8 +67,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             }
           },
           "response": []
@@ -75,8 +94,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             }
           },
           "response": []
@@ -97,8 +121,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/email-verification/verify-otp",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "email-verification", "verify-otp"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "email-verification",
+                "verify-otp"
+              ]
             }
           },
           "response": []
@@ -110,8 +140,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/email-verification/request-otp",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "email-verification", "request-otp"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "email-verification",
+                "request-otp"
+              ]
             }
           },
           "response": []
@@ -131,9 +167,16 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           },
           "response": []
@@ -149,9 +192,15 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/categories?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"],
+              "raw": "{{baseUrl}}/api/v1/categories?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -173,8 +222,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/categories/tree",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", "tree"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "tree"
+              ]
             }
           },
           "response": []
@@ -186,8 +240,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/categories/{{categoryId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", "{{categoryId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "{{categoryId}}"
+              ]
             }
           },
           "response": []
@@ -199,8 +258,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/categories/slug/i-phone-18",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", "slug", "i-phone-18"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "slug",
+                "i-phone-18"
+              ]
             }
           },
           "response": []
@@ -249,8 +314,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ]
             }
           },
           "response": []
@@ -283,8 +352,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/categories/{{categoryId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", "{{categoryId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "{{categoryId}}"
+              ]
             }
           },
           "response": []
@@ -296,8 +370,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/categories/{{categoryId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", "{{categoryId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "{{categoryId}}"
+              ]
             }
           },
           "response": []
@@ -314,8 +393,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/brands?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["brands"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "brands"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -337,8 +420,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/brands/{{brandId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "brands", "{{brandId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "brands",
+                "{{brandId}}"
+              ]
             }
           },
           "response": []
@@ -353,12 +443,12 @@
               "formdata": [
                 {
                   "key": "name",
-                  "value": "ZenVora",
+                  "value": "Gucci",
                   "type": "text"
                 },
                 {
                   "key": "altText",
-                  "value": "ZenVora Brand Logo",
+                  "value": "gucci Brand Logo",
                   "type": "text"
                 },
                 {
@@ -370,9 +460,15 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/brands",
-              "host": ["{{baseUrl}}"],
-              "path": ["brands"]
+              "raw": "{{baseUrl}}/api/v1/brands",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "brands"
+              ]
             }
           },
           "response": []
@@ -400,8 +496,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/brands/{{brandId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "brands", "{{brandId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "brands",
+                "{{brandId}}"
+              ]
             }
           },
           "response": []
@@ -413,8 +516,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/brands/{{brandId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "brands", "{{brandId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "brands",
+                "{{brandId}}"
+              ]
             }
           },
           "response": []
@@ -431,8 +541,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/addresses",
-              "host": ["{{baseUrl}}"],
-              "path": ["addresses"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses"
+              ]
             }
           },
           "response": []
@@ -444,8 +558,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/addresses/{{addressId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["addresses", "{{addressId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses",
+                "{{addressId}}"
+              ]
             }
           },
           "response": []
@@ -466,8 +585,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/addresses",
-              "host": ["{{baseUrl}}"],
-              "path": ["addresses"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses"
+              ]
             }
           },
           "response": []
@@ -488,8 +611,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/addresses/{{addressId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["addresses", "{{addressId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses",
+                "{{addressId}}"
+              ]
             }
           },
           "response": []
@@ -501,8 +629,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/addresses/{{addressId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["addresses", "{{addressId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "addresses",
+                "{{addressId}}"
+              ]
             }
           },
           "response": []
@@ -518,9 +651,15 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/product-tags?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["product-tags"],
+              "raw": "{{baseUrl}}/api/v1/product-tags?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "product-tags"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -542,8 +681,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/product-tags/{{tagId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "product-tags", "{{tagId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "product-tags",
+                "{{tagId}}"
+              ]
             }
           },
           "response": []
@@ -555,8 +701,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/product-tags/slug/new",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "product-tags", "slug", "new"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "product-tags",
+                "slug",
+                "new"
+              ]
             }
           },
           "response": []
@@ -577,8 +731,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/product-tags",
-              "host": ["{{baseUrl}}"],
-              "path": ["product-tags"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-tags"
+              ]
             }
           },
           "response": []
@@ -599,8 +757,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/product-tags/{{tagId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "product-tags", "{{tagId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "product-tags",
+                "{{tagId}}"
+              ]
             }
           },
           "response": []
@@ -612,8 +777,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/product-tags/{{tagId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "product-tags", "{{tagId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "product-tags",
+                "{{tagId}}"
+              ]
             }
           },
           "response": []
@@ -630,8 +802,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/blog-tags?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "blog-tags"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog-tags"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -653,8 +831,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/blog-tags/{{blogTagId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "blog-tags", "{{blogTagId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog-tags",
+                "{{blogTagId}}"
+              ]
             }
           },
           "response": []
@@ -666,8 +851,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/blog-tags/slug/lifestyle",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "blog-tags", "slug", "lifestyle"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog-tags",
+                "slug",
+                "lifestyle"
+              ]
             }
           },
           "response": []
@@ -688,8 +881,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/blog-tags",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "blog-tags"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog-tags"
+              ]
             }
           },
           "response": []
@@ -710,8 +909,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/blog-tags/{{blogTagId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "blog-tags", "{{blogTagId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog-tags",
+                "{{blogTagId}}"
+              ]
             }
           },
           "response": []
@@ -723,8 +929,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/blog-tags/{{blogTagId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "blog-tags", "{{blogTagId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "blog-tags",
+                "{{blogTagId}}"
+              ]
             }
           },
           "response": []
@@ -741,8 +954,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/reviews/product/{{productId}}?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "reviews", "product", "{{productId}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reviews",
+                "product",
+                "{{productId}}"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -764,8 +985,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/reviews/{{reviewId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "reviews", "{{reviewId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reviews",
+                "{{reviewId}}"
+              ]
             }
           },
           "response": []
@@ -786,8 +1014,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/reviews",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "reviews"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reviews"
+              ]
             }
           },
           "response": []
@@ -808,8 +1042,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/reviews/{{reviewId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "reviews", "{{reviewId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reviews",
+                "{{reviewId}}"
+              ]
             }
           },
           "response": []
@@ -821,8 +1062,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/reviews/{{reviewId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "reviews", "{{reviewId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reviews",
+                "{{reviewId}}"
+              ]
             }
           },
           "response": []
@@ -839,8 +1087,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -862,8 +1116,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}"
+              ]
             }
           },
           "response": []
@@ -875,34 +1136,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/slug/zenvora-phone-x",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "slug", "zenvora-phone-x"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Product Colors",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/colors",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "colors"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Product Sizes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/sizes",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "sizes"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "slug",
+                "zenvora-phone-x"
+              ]
             }
           },
           "response": []
@@ -923,8 +1166,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
             }
           },
           "response": []
@@ -945,8 +1194,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}"
+              ]
             }
           },
           "response": []
@@ -967,8 +1223,16 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "status"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "status"
+              ]
             }
           },
           "response": []
@@ -985,12 +1249,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Space Grey\",\n  \"hex\": \"#5A5D64\"\n}"
+              "raw": "{\n    \"name\": \"Black Rhodium\",\n    \"hex\": \"#2B2B2B\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/colors",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "colors"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "colors"
+              ]
             }
           },
           "response": []
@@ -1002,8 +1274,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/colors/{{colorId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "colors", "{{colorId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "colors",
+                "{{colorId}}"
+              ]
             }
           },
           "response": []
@@ -1020,12 +1300,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"value\": \"128GB\"\n}"
+              "raw": "{\n  \"value\": \"60\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/sizes",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "sizes"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "sizes"
+              ]
             }
           },
           "response": []
@@ -1037,8 +1325,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/sizes/{{sizeId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "sizes", "{{sizeId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "sizes",
+                "{{sizeId}}"
+              ]
             }
           },
           "response": []
@@ -1059,8 +1355,16 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/variants",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "variants"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "variants"
+              ]
             }
           },
           "response": []
@@ -1072,8 +1376,16 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/variants/{{variantId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "variants", "{{variantId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "variants",
+                "{{variantId}}"
+              ]
             }
           },
           "response": []
@@ -1088,21 +1400,41 @@
               "formdata": [
                 {
                   "key": "colorId",
-                  "value": "{{colorId}}",
+                  "value": "cmpx92xsf0003aknfjatbstx7",
                   "type": "text"
                 },
                 {
                   "key": "files",
                   "description": "Product images to upload",
                   "type": "file",
-                  "src": []
+                  "src": "postman-cloud:///1f11e646-4fed-4060-99c6-557cb2b5d161"
+                },
+                {
+                  "key": "colorId",
+                  "value": "cmpx93pch0004aknffzm5mg0v",
+                  "type": "text",
+                  "uuid": "c775969a-fe87-4ae0-9e21-36e3b2f9d118"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "uuid": "541c3563-b13e-4600-83be-190958edd5f2",
+                  "src": "postman-cloud:///1f0dea6f-bd4a-4580-93e1-3aa13d0e0f56"
                 }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/images",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "images"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "images"
+              ]
             }
           },
           "response": []
@@ -1124,14 +1456,22 @@
                   "key": "file",
                   "description": "Single product image to upload",
                   "type": "file",
-                  "src": []
+                  "value": null
                 }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/image",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "image"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "image"
+              ]
             }
           },
           "response": []
@@ -1143,8 +1483,17 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/images/{{imageId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "images", "{{imageId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "images",
+                "{{imageId}}"
+              ]
             }
           },
           "response": []
@@ -1161,12 +1510,20 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "[\n  {\n    \"key\": \"Screen Size\",\n    \"value\": \"6.7 inches\"\n  },\n  {\n    \"key\": \"RAM\",\n    \"value\": \"8 GB\"\n  }\n]"
+              "raw": "{\n  \"specifications\": [\n    { \"key\": \"Display\", \"value\": \"6.7 inches Super Retina XDR\" },\n    { \"key\": \"Processor\", \"value\": \"A17 Pro chip\" }\n  ],\n  \"status\": \"ACTIVE\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/specifications",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}", "specifications"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "specifications"
+              ]
             }
           },
           "response": []
@@ -1178,7 +1535,9 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}/specifications/{{specificationId}}",
-              "host": ["{{baseUrl}}"],
+              "host": [
+                "{{baseUrl}}"
+              ],
               "path": [
                 "api",
                 "v1",
@@ -1198,8 +1557,332 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "products", "{{productId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product colors",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"60\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/colors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "colors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get product sizes",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"60\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/sizes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{productId}}",
+                "sizes"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get user cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to cart",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Wishlist",
+      "item": [
+        {
+          "name": "Get user wishlist",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Place Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"COD\",\n  \"paymentProvider\": \"COD\",\n  \"shippingAddress\": {\n    \"fullname\": \"Abhishek Jaiswar\",\n    \"phoneNumber\": \"8591151528\",\n    \"addressLine1\": \"123 Main Street\",\n    \"addressLine2\": \"Apt 4B\",\n    \"landmark\": \"Near Central Park\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"postalCode\": \"400095\",\n    \"country\": \"India\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/mine?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "mine"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Orders (Admin only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order Status (Admin only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SHIPPED\",\n  \"trackingNumber\": \"ZVFD-9854721\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "{{orderId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"razorpayOrderId\": \"order_xyz123\",\n  \"razorpayPaymentId\": \"pay_abc789\",\n  \"razorpaySignature\": \"computed_hmac_signature\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payments List (Admin only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
             }
           },
           "response": []
@@ -1212,14 +1895,18 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
-        "exec": [""]
+        "exec": [
+          ""
+        ]
       }
     },
     {
       "listen": "test",
       "script": {
         "type": "text/javascript",
-        "exec": [""]
+        "exec": [
+          ""
+        ]
       }
     }
   ],
@@ -1275,6 +1962,14 @@
     {
       "key": "reviewId",
       "value": "cuid_placeholder_for_review"
+    },
+    {
+      "key": "orderId",
+      "value": "cuid_placeholder_for_order"
+    },
+    {
+      "key": "paymentId",
+      "value": "cuid_placeholder_for_payment"
     }
   ]
 }

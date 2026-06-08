@@ -20,7 +20,7 @@ import cartRoutes from "../src/modules/cart/cart.routes.js";
 import wishlistRoutes from "../src/modules/wishlist/wishlist.routes.js";
 import couponRoutes from "../src/modules/coupons/coupon.routes.js";
 import offerRoutes from "../src/modules/offers/offer.routes.js";
-import orderRoutes from "./modules/orderssss/order.routes.js";
+import orderRoutes from "./modules/orders/order.routes.js";
 import paymentRoutes from "../src/modules/payments/payment.routes.js";
 import os from "os";
 
