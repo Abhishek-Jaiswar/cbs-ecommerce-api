@@ -345,6 +345,30 @@ class ProductService {
     return updated;
   }
 
+  async getAllVariants(params: {
+    page: number;
+    limit: number;
+    search?: string | undefined;
+    stockStatus?: string | undefined;
+  }) {
+    return await productRepository.getAllVariants(params);
+  }
+
+  async updateProductVariant(
+    variantId: string,
+    payload: { price?: number | null | undefined; stock?: number | undefined }
+  ) {
+    const variant = await productRepository.getProductVariantById(variantId);
+    if (!variant) {
+      throw new NotFoundError("Product variant not found");
+    }
+
+    const updated = await productRepository.updateProductVariant(variantId, payload);
+    await productCache.invalidateProducts(variant.productId);
+
+    return updated;
+  }
+
   private generateVariantSku() {
     return `ZENSKU-${nanoid(8).toUpperCase()}`;
   }

@@ -1,7 +1,7 @@
 import type { Prisma } from "../../generated/prisma/client.js";
 import type { OrderStatus } from "../../generated/prisma/enums.js";
 import { RazorpayService } from "../payments/razorpay.service.js";
-import { SHIPPING_AMOUNT, TAX } from "../../utils/constants.js";
+import { TAX } from "../../utils/constants.js";
 import { BadRequestError, NotFoundError } from "../../utils/errors/app-error.js";
 import { addressRepository } from "../address/address.repository.js";
 import { cartRepository } from "../cart/cart.repository.js";
@@ -19,15 +19,26 @@ import crypto from "crypto";
 
 class OrderService {
   async findOrders(page: number, limit: number) {
-    return await orderCache.geOrSetOrderLists(page, limit, () =>
+    return await orderCache.geOrSetOrderLists(page, limit, undefined, () =>
       orderRepository.findOrders(page, limit)
     );
   }
 
   async findUserOrdersByUserId(userId: string, page: number, limit: number) {
-    return await orderCache.geOrSetOrderLists(page, limit, () =>
+    return await orderCache.geOrSetOrderLists(page, limit, userId, () =>
       orderRepository.findUserOrderByUserId(userId, page, limit)
     );
+  }
+
+  async findOrderById(orderId: string, userId: string, isAdmin: boolean) {
+    const order = await orderRepository.findOrderById(orderId);
+    if (!order) {
+      throw new NotFoundError("Order not found");
+    }
+    if (!isAdmin && order.userId !== userId) {
+      throw new BadRequestError("You do not have permission to view this order");
+    }
+    return order;
   }
 
   private async validateOrCreateAddress(
@@ -161,7 +172,8 @@ class OrderService {
 
     // Calculate shipping charges, taxes, and final total
 
-    const shippingAmount = SHIPPING_AMOUNT || 0;
+    const shippingThreshold = 2000;
+    const shippingAmount = subTotal >= shippingThreshold ? 0 : 25;
     const tax = TAX || 0;
 
     const total = Math.max(0, subTotal + shippingAmount + tax - discount);
@@ -215,6 +227,8 @@ class OrderService {
         }))
       );
 
+      await orderCache.invalidateOrderLists();
+
       return {
         order,
         payment,
@@ -223,6 +237,9 @@ class OrderService {
       try {
         const razorpayOrder = await RazorpayService.createRazorpayOrder(total, order.orderNumber);
         const updatedPayment = await paymentRepository.updatePayment(payment.id, razorpayOrder.id);
+        
+        await orderCache.invalidateOrderLists();
+
         return {
           order,
           payment: updatedPayment,
@@ -262,7 +279,9 @@ class OrderService {
       updateData.cancelledAt = new Date();
     }
 
-    return await orderRepository.updateOrder(orderId, updateData);
+    const updatedOrder = await orderRepository.updateOrder(orderId, updateData);
+    await orderCache.invalidateOrders(orderId);
+    return updatedOrder;
   }
 
   async cancelOrder(orderId: string, userId: string, isAdmin: boolean) {
@@ -301,6 +320,8 @@ class OrderService {
         quantity: item.quantity,
       }))
     );
+
+    await orderCache.invalidateOrders(orderId);
 
     return updatedOrder;
   }

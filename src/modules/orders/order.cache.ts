@@ -2,12 +2,14 @@ import { cacheService } from "../../lib/shared/cache.js";
 import { logger } from "../../lib/winston.js";
 
 const ORDER_CACHE_TTL_SECONDS = 60 * 60 * 3;
-const ORDER_VERSION_FALLBACK = 1;
+const ORDER_VERSION_FALLBACK = 0;
 const ORDER_LIST_VERSION_KEY = "order:list:version";
 
 const buildOrderDetailsKey = (orderId: string) => `order:details:${orderId}`;
-const buildOrdersListKey = (version: number, page: number, limit: number) =>
-  `order:list:v${version}:${page}:${limit}`;
+const buildOrdersListKey = (version: number, page: number, limit: number, userId?: string) =>
+  userId
+    ? `order:list:user:${userId}:v${version}:${page}:${limit}`
+    : `order:list:all:v${version}:${page}:${limit}`;
 
 class OrderCache {
   async getListVersion() {
@@ -18,10 +20,15 @@ class OrderCache {
     return cacheService.remember(buildOrderDetailsKey(id), ORDER_CACHE_TTL_SECONDS, producer);
   }
 
-  async geOrSetOrderLists<T>(page: number, limit: number, producer: () => Promise<T>) {
+  async geOrSetOrderLists<T>(
+    page: number,
+    limit: number,
+    userId: string | undefined,
+    producer: () => Promise<T>
+  ) {
     const version = await this.getListVersion();
     return cacheService.remember(
-      buildOrdersListKey(version, page, limit),
+      buildOrdersListKey(version, page, limit, userId),
       ORDER_CACHE_TTL_SECONDS,
       producer
     );

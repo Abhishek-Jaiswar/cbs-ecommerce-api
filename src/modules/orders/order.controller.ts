@@ -45,6 +45,30 @@ class OrderController {
     }
   }
 
+  async getOrderById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orderId = req.params.id as string;
+      const userId = req.user?.userId;
+      const userRole = req.user?.role;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const order = await orderService.findOrderById(orderId, userId, userRole === "ADMIN");
+
+      return res.status(200).json({
+        message: "Order fetched successfully",
+        success: true,
+        data: order,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async placeOrder(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.userId;

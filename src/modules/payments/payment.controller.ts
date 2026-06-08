@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { verifyPaymentSchema } from "../orders/order.schema.js";
 import { RazorpayService } from "./razorpay.service.js";
 import { paymentRepository } from "./payment.repository.js";
+import { orderCache } from "../orders/order.cache.js";
 
 class PaymentController {
   async verifyPayment(req: Request, res: Response, next: NextFunction) {
@@ -31,6 +32,8 @@ class PaymentController {
         razorpayPaymentId,
         razorpaySignature,
       });
+
+      await orderCache.invalidateOrders(orderId);
 
       return res.status(200).json({
         success: true,

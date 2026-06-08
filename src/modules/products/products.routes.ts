@@ -8,6 +8,7 @@ const router: Router = express.Router();
 
 // Public routes
 router.get("/", productController.getProducts);
+router.get("/variants", requireAuth, requireRole("ADMIN"), productController.getAllVariants);
 router.get("/:id", productController.getProductById);
 router.get("/slug/:slug", productController.getProductBySlug);
 router.get("/:productId/colors", productController.getColors);
@@ -48,6 +49,12 @@ router.delete(
   requireAuth,
   requireRole("ADMIN"),
   productController.deleteVariant
+);
+router.put(
+  "/variants/:variantId",
+  requireAuth,
+  requireRole("ADMIN"),
+  productController.updateVariant
 );
 
 // Images management
