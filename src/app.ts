@@ -22,6 +22,8 @@ import couponRoutes from "../src/modules/coupons/coupon.routes.js";
 import offerRoutes from "../src/modules/offers/offer.routes.js";
 import orderRoutes from "./modules/orders/order.routes.js";
 import paymentRoutes from "../src/modules/payments/payment.routes.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import announcementRoutes from "./modules/announcements/announcement.routes.js";
 import os from "os";
 
 export const startApp = (): Application => {
@@ -81,6 +83,8 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/offers`, offerRoutes);
   app.use(`/api/${Env.API_VERSION}/orders`, orderRoutes);
   app.use(`/api/${Env.API_VERSION}/payments`, paymentRoutes);
+  app.use(`/api/${Env.API_VERSION}/dashboard`, dashboardRoutes);
+  app.use(`/api/${Env.API_VERSION}/announcements`, announcementRoutes);
 
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();

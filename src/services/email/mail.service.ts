@@ -3,6 +3,11 @@ import { Env } from "../../config/env.config.js";
 import { logger } from "../../lib/winston.js";
 import { resetPasswordOtpTemplate } from "./templates/reset-password-otp-template.js";
 import { verifyEmailOtpTemplate } from "./templates/verify-email-template.js";
+import {
+  orderCreatedTemplate,
+  orderCancelledTemplate,
+  orderDeliveredTemplate,
+} from "./templates/order-templates.js";
 
 class MailService {
   private transporter;
@@ -39,6 +44,21 @@ class MailService {
 
   async sendResetPasswordOtp(to: string, otp: string) {
     return this.sendEmail(to, "Reset Your Password - ZenVoraa", resetPasswordOtpTemplate(otp));
+  }
+
+  async sendOrderCreatedEmail(to: string, order: any, userName: string, isAdmin: boolean) {
+    const subject = isAdmin ? `[New Order] ${order.orderNumber}` : `Order Confirmed - Zenvoraa`;
+    return this.sendEmail(to, subject, orderCreatedTemplate(order, userName, isAdmin));
+  }
+
+  async sendOrderCancelledEmail(to: string, order: any, userName: string, isAdmin: boolean) {
+    const subject = isAdmin ? `[Order Cancelled] ${order.orderNumber}` : `Order Cancelled - Zenvoraa`;
+    return this.sendEmail(to, subject, orderCancelledTemplate(order, userName, isAdmin));
+  }
+
+  async sendOrderDeliveredEmail(to: string, order: any, userName: string, isAdmin: boolean) {
+    const subject = isAdmin ? `[Order Delivered] ${order.orderNumber}` : `Your order has been delivered!`;
+    return this.sendEmail(to, subject, orderDeliveredTemplate(order, userName, isAdmin));
   }
 }
 

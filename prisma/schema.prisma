@@ -696,3 +696,14 @@ enum DiscountType {
   PERCENTAGE
   FIXED_AMOUNT
 }
+
+model Announcement {
+  id        String   @id @default(cuid())
+  text      String
+  link      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}

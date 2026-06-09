@@ -9,6 +9,10 @@ import { couponRepository } from "../coupons/coupon.repository.js";
 import { orderCache } from "./order.cache.js";
 import { orderRepository } from "./order.repository.js";
 import { paymentRepository } from "../payments/payment.repository.js";
+import { userRepository } from "../user/user.repository.js";
+import { emailService } from "../../services/email/mail.service.js";
+import { Env } from "../../config/env.config.js";
+import { logger } from "../../lib/winston.js";
 import type {
   TCartItem,
   TCartItemWithDetails,
@@ -229,6 +233,21 @@ class OrderService {
 
       await orderCache.invalidateOrderLists();
 
+      // Send order confirmation emails asynchronously
+      (async () => {
+        try {
+          const orderWithDetails = await orderRepository.findOrderById(order.id);
+          const user = await userRepository.findUserById(userId);
+          if (user && orderWithDetails) {
+            await emailService.sendOrderCreatedEmail(user.email, orderWithDetails, user.name, false);
+            const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
+            await emailService.sendOrderCreatedEmail(adminEmail, orderWithDetails, user.name, true);
+          }
+        } catch (err) {
+          logger.error("Failed to send COD order confirmation emails:", err);
+        }
+      })();
+
       return {
         order,
         payment,
@@ -281,6 +300,30 @@ class OrderService {
 
     const updatedOrder = await orderRepository.updateOrder(orderId, updateData);
     await orderCache.invalidateOrders(orderId);
+
+    // Send emails based on the new status
+    if (payload.status === "DELIVERED" || payload.status === "CANCELLED") {
+      (async () => {
+        try {
+          const orderWithDetails = await orderRepository.findOrderById(orderId);
+          const user = await userRepository.findUserById(updatedOrder.userId);
+          if (user && orderWithDetails) {
+            if (payload.status === "DELIVERED") {
+              await emailService.sendOrderDeliveredEmail(user.email, orderWithDetails, user.name, false);
+              const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
+              await emailService.sendOrderDeliveredEmail(adminEmail, orderWithDetails, user.name, true);
+            } else if (payload.status === "CANCELLED") {
+              await emailService.sendOrderCancelledEmail(user.email, orderWithDetails, user.name, false);
+              const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
+              await emailService.sendOrderCancelledEmail(adminEmail, orderWithDetails, user.name, true);
+            }
+          }
+        } catch (err) {
+          logger.error(`Failed to send order status update (${payload.status}) emails:`, err);
+        }
+      })();
+    }
+
     return updatedOrder;
   }
 
@@ -322,6 +365,21 @@ class OrderService {
     );
 
     await orderCache.invalidateOrders(orderId);
+
+    // Send cancellation email
+    (async () => {
+      try {
+        const orderWithDetails = await orderRepository.findOrderById(orderId);
+        const user = await userRepository.findUserById(order.userId);
+        if (user && orderWithDetails) {
+          await emailService.sendOrderCancelledEmail(user.email, orderWithDetails, user.name, false);
+          const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
+          await emailService.sendOrderCancelledEmail(adminEmail, orderWithDetails, user.name, true);
+        }
+      } catch (err) {
+        logger.error("Failed to send order cancellation emails:", err);
+      }
+    })();
 
     return updatedOrder;
   }
