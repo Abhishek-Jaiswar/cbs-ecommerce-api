@@ -66,7 +66,7 @@ class UserService {
   }
 
   async getMe(userId: string) {
-    const user = await userCache.getOrSetUserMe(userId, () => userRepository.getMe(userId));
+    const user = await userRepository.getMe(userId);
 
     if (!user) {
       throw new NotFoundError("User not found.");

@@ -8,7 +8,6 @@ const USER_OTP_TTL_SECONDS = 60 * 10;
 
 const buildUserDetailsKey = (userId: string) => `user:details:${userId}`;
 
-const buildUserMeKey = (userId: string) => `user:me:${userId}`;
 
 const buildUserListKey = (version: number, page: number, limit: number) =>
   `user:list:v${version}:page:${page}:limit:${limit}`;
@@ -28,9 +27,6 @@ class UserCache {
     return cacheService.remember(buildUserDetailsKey(userId), USER_CACHE_TTL_SECONDS, producer);
   }
 
-  async getOrSetUserMe<T>(userId: string, producer: () => Promise<T>) {
-    return cacheService.remember(buildUserMeKey(userId), USER_CACHE_TTL_SECONDS, producer);
-  }
 
   async getOrSetUserList<T>(page: number, limit: number, producer: () => Promise<T>) {
     const version = await this.getListVersion();
@@ -57,8 +53,7 @@ class UserCache {
 
   async invalidateUser(userId: string) {
     const deletedKeys = await cacheService.delete(
-      buildUserDetailsKey(userId),
-      buildUserMeKey(userId)
+      buildUserDetailsKey(userId)
     );
 
     logger.info("User cache invalidated", {
