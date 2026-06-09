@@ -1,3 +1,5 @@
+import { Env } from "../../../config/env.config.js";
+
 function formatPrice(price: number | string) {
   const numeric = Number(price);
   if (isNaN(numeric)) return String(price);
@@ -172,7 +174,7 @@ export const orderDeliveredTemplate = (order: any, userName: string, isAdmin: bo
     </p>
 
     <div style="text-align: center; margin-top: 40px; margin-bottom: 20px;">
-      <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}/account" style="background-color: #c29958; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 13px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; display: inline-block;">
+      <a href="${Env.FRONTEND_URL}/account" style="background-color: #c29958; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 13px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; display: inline-block;">
         View Your Order
       </a>
     </div>
