@@ -8,9 +8,13 @@ const router: Router = express.Router();
 
 // Public routes
 router.get("/", productController.getProducts);
+
+// Admin-only product listing (all products, no status filter)
+router.get("/admin/all", requireAuth, requireRole("ADMIN"), productController.getAdminProducts);
+
 router.get("/variants", requireAuth, requireRole("ADMIN"), productController.getAllVariants);
-router.get("/:id", productController.getProductById);
 router.get("/slug/:slug", productController.getProductBySlug);
+router.get("/:id", productController.getProductById);
 router.get("/:productId/colors", productController.getColors);
 router.get("/:productId/sizes", productController.getSizes);
 

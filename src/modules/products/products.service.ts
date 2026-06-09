@@ -22,6 +22,10 @@ class ProductService {
     );
   }
 
+  async getProductsForAdmin(page: number, limit: number) {
+    return await productRepository.getProductsForAdmin(page, limit);
+  }
+
   async getProductsById(id: string) {
     const products = await productCache.getOrSetProductDetails(id, () =>
       productRepository.getProductById(id)

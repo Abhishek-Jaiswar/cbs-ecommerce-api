@@ -55,6 +55,44 @@ class ProductRepository {
     };
   }
 
+  async getProductsForAdmin(page: number, limit: number) {
+    const [items, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          excerpt: true,
+          price: true,
+          originalPrice: true,
+          isNew: true,
+          isFeatured: true,
+          isSale: true,
+          offerEnds: true,
+          forListing: true,
+          categoryId: true,
+          status: true,
+          brandId: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.product.count(),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
   async getProductById(id: string) {
     return await prisma.product.findUnique({
       where: {

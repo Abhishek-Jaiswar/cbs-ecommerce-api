@@ -32,6 +32,23 @@ class ProductController {
     }
   }
 
+  async getAdminProducts(req: Request, res: Response, next: NextFunction) {
+    try {
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 200);
+
+      const result = await productService.getProductsForAdmin(page, limit);
+
+      return res.status(200).json({
+        success: true,
+        message: "Admin products fetched successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getProductById(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id as string;
