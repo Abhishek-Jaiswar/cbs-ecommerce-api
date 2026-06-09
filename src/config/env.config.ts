@@ -31,6 +31,9 @@ const envSchema = z.object({
 
   RAZORPAY_KEY_ID: z.string().min(1, { error: "Razorpay key id is required" }),
   RAZORPAY_KEY_SECRET: z.string().min(1, { error: "Razorpay key secret is required" }),
+
+  COOKIE_SAME_SITE: z.enum(["lax", "strict", "none"]).optional(),
+  COOKIE_DOMAIN: z.string().optional(),
 });
 
 const parseEnv = () => {
