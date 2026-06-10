@@ -32,6 +32,36 @@ class ProductRepository {
           offerEnds: true,
           forListing: true,
           categoryId: true,
+          brandId: true,
+          brand: {
+            select: {
+              name: true,
+            },
+          },
+          productTags: {
+            select: {
+              tag: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          },
+          variants: {
+            select: {
+              id: true,
+              stock: true,
+            },
+          },
+          colors: {
+            select: {
+              id: true,
+              name: true,
+              hex: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
