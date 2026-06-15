@@ -93,6 +93,11 @@ class OrderReposity {
           totalAmount: payload.total,
           status: payload.status,
           paymentStatus: "PENDING",
+          utmSource: payload.utmSource ?? null,
+          utmMedium: payload.utmMedium ?? null,
+          utmCampaign: payload.utmCampaign ?? null,
+          utmTerm: payload.utmTerm ?? null,
+          utmContent: payload.utmContent ?? null,
         },
       });
 

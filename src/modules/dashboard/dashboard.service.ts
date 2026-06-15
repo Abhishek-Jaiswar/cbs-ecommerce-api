@@ -244,6 +244,169 @@ class DashboardService {
       recentOrders,
     };
   }
+
+  async getCampaignBudgets() {
+    return prisma.campaignBudget.findMany({
+      orderBy: { campaignName: "asc" },
+    });
+  }
+
+  async upsertCampaignBudget(data: { campaignName: string; budget: number; source: string | null; medium: string | null }) {
+    return prisma.campaignBudget.upsert({
+      where: { campaignName: data.campaignName },
+      update: {
+        budget: data.budget,
+        source: data.source,
+        medium: data.medium,
+      },
+      create: {
+        campaignName: data.campaignName,
+        budget: data.budget,
+        source: data.source,
+        medium: data.medium,
+      },
+    });
+  }
+
+  async logEvent(data: { eventName: string; utmCampaign: string | null; utmSource: string | null; utmMedium: string | null; sessionValue: string | null; metadata: any }) {
+    return prisma.analyticsEvent.create({
+      data: {
+        eventName: data.eventName,
+        utmCampaign: data.utmCampaign,
+        utmSource: data.utmSource,
+        utmMedium: data.utmMedium,
+        sessionValue: data.sessionValue,
+        metadata: data.metadata || undefined,
+      },
+    });
+  }
+
+  async getUtmReports() {
+    // Fetch all campaigns with budgets
+    const budgets = await prisma.campaignBudget.findMany();
+    
+    // Fetch all orders with UTM campaigns
+    const orders = await prisma.order.findMany({
+      where: {
+        utmCampaign: { not: null },
+      },
+      select: {
+        utmCampaign: true,
+        utmSource: true,
+        utmMedium: true,
+        totalAmount: true,
+        paymentStatus: true,
+      },
+    });
+
+    // Fetch click/page_view and add_to_cart counts from AnalyticsEvent
+    const events = await prisma.analyticsEvent.groupBy({
+      by: ["utmCampaign", "eventName"],
+      where: {
+        utmCampaign: { not: null },
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // Aggregate everything by campaign name
+    const campaignMap: Record<string, {
+      campaignName: string;
+      source: string | null;
+      medium: string | null;
+      clicks: number;
+      addToCarts: number;
+      totalOrders: number;
+      paidOrders: number;
+      revenue: number;
+      spend: number;
+    }> = {};
+
+    // 1. Initialize with budgets
+    budgets.forEach((b) => {
+      campaignMap[b.campaignName] = {
+        campaignName: b.campaignName,
+        source: b.source,
+        medium: b.medium,
+        clicks: 0,
+        addToCarts: 0,
+        totalOrders: 0,
+        paidOrders: 0,
+        revenue: 0,
+        spend: Number(b.budget),
+      };
+    });
+
+    // 2. Add event stats
+    events.forEach((evt) => {
+      const campName = evt.utmCampaign!;
+      if (!campaignMap[campName]) {
+        campaignMap[campName] = {
+          campaignName: campName,
+          source: null,
+          medium: null,
+          clicks: 0,
+          addToCarts: 0,
+          totalOrders: 0,
+          paidOrders: 0,
+          revenue: 0,
+          spend: 0,
+        };
+      }
+      if (evt.eventName === "page_view") {
+        campaignMap[campName].clicks = evt._count.id;
+      } else if (evt.eventName === "add_to_cart") {
+        campaignMap[campName].addToCarts = evt._count.id;
+      }
+    });
+
+    // 3. Add order stats
+    orders.forEach((ord) => {
+      const campName = ord.utmCampaign!;
+      if (!campaignMap[campName]) {
+        campaignMap[campName] = {
+          campaignName: campName,
+          source: ord.utmSource,
+          medium: ord.utmMedium,
+          clicks: 0,
+          addToCarts: 0,
+          totalOrders: 0,
+          paidOrders: 0,
+          revenue: 0,
+          spend: 0,
+        };
+      }
+      
+      const camp = campaignMap[campName];
+      if (!camp.source && ord.utmSource) camp.source = ord.utmSource;
+      if (!camp.medium && ord.utmMedium) camp.medium = ord.utmMedium;
+      
+      camp.totalOrders += 1;
+      if (ord.paymentStatus === "PAID") {
+        camp.paidOrders += 1;
+        camp.revenue += Number(ord.totalAmount);
+      }
+    });
+
+    // 4. Calculate ROI and conversion rates
+    const campaignsList = Object.values(campaignMap).map((camp) => {
+      const aov = camp.paidOrders > 0 ? camp.revenue / camp.paidOrders : 0;
+      const conversionRate = camp.clicks > 0 ? (camp.paidOrders / camp.clicks) * 100 : 0;
+      const netProfit = camp.revenue - camp.spend;
+      const roi = camp.spend > 0 ? (netProfit / camp.spend) * 100 : 0;
+
+      return {
+        ...camp,
+        aov,
+        conversionRate,
+        netProfit,
+        roi,
+      };
+    });
+
+    return campaignsList;
+  }
 }
 
 export const dashboardService = new DashboardService();

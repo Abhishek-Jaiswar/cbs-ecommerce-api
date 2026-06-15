@@ -20,6 +20,11 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(["CARD", "UPI", "NETBANKING", "WALLET", "EMI", "COD"]),
   paymentProvider: z.enum(["RAZORPAY", "COD"]),
   couponCode: z.string().optional().nullable(),
+  utmSource: z.string().optional().nullable(),
+  utmMedium: z.string().optional().nullable(),
+  utmCampaign: z.string().optional().nullable(),
+  utmTerm: z.string().optional().nullable(),
+  utmContent: z.string().optional().nullable(),
 });
 
 export const updateOrderStatusSchema = z.object({
