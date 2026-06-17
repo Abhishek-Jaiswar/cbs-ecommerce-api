@@ -236,15 +236,26 @@ class UserController {
         });
       }
 
-      const verifiedEmail = await userService.verifyEmailService(
+      const verifiedUser = await userService.verifyEmailService(
         validation.data.email,
         validation.data.otp
       );
 
+      const payload = {
+        userId: verifiedUser.id,
+        name: verifiedUser.name,
+        email: verifiedUser.email,
+        role: verifiedUser.role,
+      };
+
+      const token = generateAccessToken(payload);
+
+      setAuthCookies(res, token);
+
       return res.status(200).json({
         message: "Email verified successfully",
         success: true,
-        data: verifiedEmail,
+        data: verifiedUser,
       });
     } catch (error) {
       next(error);

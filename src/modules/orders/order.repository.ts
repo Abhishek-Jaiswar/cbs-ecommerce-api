@@ -112,6 +112,12 @@ class OrderReposity {
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.totalPrice,
+          sellingPriceAtPurchase: item.sellingPriceAtPurchase,
+          costPriceAtPurchase: item.costPriceAtPurchase,
+          mrpAtPurchase: item.mrpAtPurchase,
+          appliedOfferId: item.appliedOfferId ?? null,
+          appliedOfferName: item.appliedOfferName ?? null,
+          offerDiscountAmount: item.offerDiscountAmount ?? 0,
         })),
       });
 

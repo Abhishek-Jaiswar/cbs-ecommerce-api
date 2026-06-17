@@ -1,5 +1,7 @@
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../utils/errors/app-error.js";
 import { cartRepository } from "./cart.repository.js";
+import { offerService } from "../offers/offer.service.js";
+import { applyOffersToProduct, getProductActiveOffer, calculateDiscountedPrice } from "../offers/offer-calculation.helper.js";
 
 class CartService {
   async getUserCart(userId: string) {
@@ -14,6 +16,40 @@ class CartService {
     if (!cart) {
       throw new NotFoundError("Cart could not be retrieved");
     }
+
+    const activeOffers = await offerService.getActiveOffers();
+    cart.items = cart.items.map((item: any) => {
+      if (item.variant && item.variant.product) {
+        // Apply offer to the product
+        item.variant.product = applyOffersToProduct(item.variant.product, activeOffers);
+        // And override variant price based on the product's variant calculation
+        const correspondingVariant = item.variant.product.variants?.find((v: any) => v.id === item.variantId);
+        if (correspondingVariant) {
+          item.variant.price = correspondingVariant.price;
+          item.variant.basePrice = correspondingVariant.basePrice;
+          item.variant.appliedOffer = correspondingVariant.appliedOffer;
+        } else {
+          // Fallback if variants are not populated on product details
+          const baseVariantPrice = item.variant.price ? Number(item.variant.price) : Number(item.variant.product.price);
+          const offer = getProductActiveOffer(item.variant.product, activeOffers);
+          if (offer) {
+            item.variant.basePrice = baseVariantPrice;
+            item.variant.price = calculateDiscountedPrice(baseVariantPrice, offer);
+            item.variant.appliedOffer = {
+              id: offer.id,
+              name: offer.name,
+              discountType: offer.discountType,
+              discountValue: Number(offer.discountValue),
+            };
+          } else {
+            item.variant.basePrice = baseVariantPrice;
+            item.variant.price = baseVariantPrice;
+            item.variant.appliedOffer = null;
+          }
+        }
+      }
+      return item;
+    });
 
     return cart;
   }

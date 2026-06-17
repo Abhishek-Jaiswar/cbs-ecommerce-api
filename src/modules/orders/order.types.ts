@@ -50,6 +50,12 @@ export type TCartItem = {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  sellingPriceAtPurchase: number;
+  costPriceAtPurchase: number;
+  mrpAtPurchase: number;
+  appliedOfferId?: string | null;
+  appliedOfferName?: string | null;
+  offerDiscountAmount?: number;
 };
 
 export type TPlaceOrderInput = {
@@ -94,6 +100,8 @@ export type TCartItemWithDetails = {
       id: string;
       name: string;
       price: Prisma.Decimal;
+      originalPrice: Prisma.Decimal | null;
+      costPrice: Prisma.Decimal;
       images: Array<{
         id: string;
         position: number;

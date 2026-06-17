@@ -8,6 +8,8 @@ import { cartRepository } from "../cart/cart.repository.js";
 import { couponRepository } from "../coupons/coupon.repository.js";
 import { orderCache } from "./order.cache.js";
 import { orderRepository } from "./order.repository.js";
+import { offerService } from "../offers/offer.service.js";
+import { getProductActiveOffer, calculateDiscountedPrice } from "../offers/offer-calculation.helper.js";
 import { paymentRepository } from "../payments/payment.repository.js";
 import { userRepository } from "../user/user.repository.js";
 import { emailService } from "../../services/email/mail.service.js";
@@ -150,13 +152,46 @@ class OrderService {
       }
     }
 
-    // calculate the subtotal for activ cart items
-    const subTotal = cart.items.reduce(
-      (sum, item) =>
-        sum +
-        (item.variant.price?.toNumber() ?? item.variant.product.price.toNumber()) * item.quantity,
-      0
-    );
+    const activeOffers = await offerService.getActiveOffers();
+
+    // calculate the subtotal and prepare the cartPayload with dynamic offers applied
+    let subTotal = 0;
+    const cartPayload: TCartItem[] = cart.items.map((item) => {
+      const baseVariantPrice = item.variant.price
+        ? (item.variant.price.toNumber ? item.variant.price.toNumber() : Number(item.variant.price))
+        : (item.variant.product.price.toNumber ? item.variant.product.price.toNumber() : Number(item.variant.product.price));
+      
+      const mrp = item.variant.product.originalPrice
+        ? (item.variant.product.originalPrice.toNumber ? item.variant.product.originalPrice.toNumber() : Number(item.variant.product.originalPrice))
+        : baseVariantPrice;
+
+      const cost = item.variant.product.costPrice
+        ? (item.variant.product.costPrice.toNumber ? item.variant.product.costPrice.toNumber() : Number(item.variant.product.costPrice))
+        : 0;
+
+      const offer = getProductActiveOffer(item.variant.product, activeOffers);
+      const sellingPrice = calculateDiscountedPrice(baseVariantPrice, offer);
+      const offerDiscountAmount = baseVariantPrice - sellingPrice;
+
+      subTotal += sellingPrice * item.quantity;
+
+      return {
+        productId: item.variant.productId,
+        variantId: item.variantId,
+        name: item.variant.product.name,
+        sku: item.variant.sku ?? null,
+        image: item.variant.product.images[0]?.media.url || "",
+        quantity: item.quantity,
+        unitPrice: sellingPrice,
+        totalPrice: sellingPrice * item.quantity,
+        sellingPriceAtPurchase: sellingPrice,
+        costPriceAtPurchase: cost,
+        mrpAtPurchase: mrp,
+        appliedOfferId: offer?.id ?? null,
+        appliedOfferName: offer?.name ?? null,
+        offerDiscountAmount: offerDiscountAmount,
+      };
+    });
 
     // Coupon validation and discount calculation if coupon code is provided
 
@@ -187,19 +222,6 @@ class OrderService {
 
     const orderNumber = this.generateOrderNumber();
     const trackingNumber = this.generateTrackingNumber();
-
-    const cartItems: TCartItemWithDetails[] = cart.items;
-
-    const cartPayload: TCartItem[] = cartItems.map((item) => ({
-      productId: item.variant.productId,
-      variantId: item.variantId,
-      name: item.variant.product.name,
-      sku: item.variant.sku ?? null,
-      image: item.variant.product.images[0]?.media.url || "",
-      quantity: item.quantity,
-      unitPrice: Number(item.variant.price || item.variant.product.price),
-      totalPrice: Number(item.variant.price || item.variant.product.price) * item.quantity,
-    }));
 
     const { order, payment } = await orderRepository.createPendingOrder(
       userId,

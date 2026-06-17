@@ -15,15 +15,51 @@ class DashboardService {
 
     const totalRevenueVal = paidOrders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
 
-    const completedOrdersCount = await prisma.order.count({
+    const paidOrderItems = await prisma.orderItem.findMany({
       where: {
-        status: {
-          not: "CANCELLED",
+        order: {
+          paymentStatus: "PAID",
+        },
+      },
+      include: {
+        product: {
+          select: {
+            costPrice: true,
+          },
         },
       },
     });
 
-    const avgOrderValue = completedOrdersCount > 0 ? totalRevenueVal / completedOrdersCount : 0;
+    let totalProfit = 0;
+    paidOrderItems.forEach((item) => {
+      const selling = Number(item.sellingPriceAtPurchase) > 0 ? Number(item.sellingPriceAtPurchase) : Number(item.unitPrice);
+      const cost = Number(item.costPriceAtPurchase) > 0 ? Number(item.costPriceAtPurchase) : (item.product ? Number(item.product.costPrice) : 0);
+      totalProfit += (selling - cost) * item.quantity;
+    });
+
+    const totalOrdersCount = await prisma.order.count();
+
+    const totalCustomers = await prisma.user.count({
+      where: {
+        role: "USER",
+      },
+    });
+
+    const totalProducts = await prisma.product.count();
+
+    const variants = await prisma.productVariant.findMany({
+      include: {
+        product: {
+          select: {
+            costPrice: true,
+          },
+        },
+      },
+    });
+    const inventoryValue = variants.reduce((sum, v) => sum + (v.stock * Number(v.product?.costPrice || 0)), 0);
+
+    const avgOrderValue = totalOrdersCount > 0 ? totalRevenueVal / totalOrdersCount : 0;
+    const profitMarginPercentage = totalRevenueVal > 0 ? (totalProfit / totalRevenueVal) * 100 : 0;
 
     const uniqueUsersSet = new Set(paidOrders.map((o) => o.userId));
     const activeCustomers = uniqueUsersSet.size;
@@ -233,9 +269,13 @@ class DashboardService {
     return {
       kpis: {
         totalRevenue: `₹${Number(totalRevenueVal).toLocaleString("en-IN")}`,
-        completedOrders: completedOrdersCount,
+        totalProfit: `₹${Number(totalProfit).toLocaleString("en-IN")}`,
+        totalOrders: totalOrdersCount,
+        totalCustomers,
+        totalProducts,
+        inventoryValue: `₹${Number(inventoryValue).toLocaleString("en-IN")}`,
         avgOrderValue: `₹${Number(avgOrderValue).toLocaleString("en-IN")}`,
-        activeCustomers,
+        profitMarginPercentage: `${Number(profitMarginPercentage).toFixed(1)}%`,
       },
       orderTrendData,
       revenueTrendData,
