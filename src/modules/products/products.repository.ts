@@ -33,6 +33,7 @@ class ProductRepository {
           forListing: true,
           categoryId: true,
           brandId: true,
+          createdAt: true,
           brand: {
             select: {
               name: true,

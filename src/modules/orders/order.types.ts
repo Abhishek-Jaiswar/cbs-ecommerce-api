@@ -34,6 +34,11 @@ export type TCreateOrder = {
   total: number;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmTerm?: string | null;
+  utmContent?: string | null;
 };
 
 export type TCartItem = {
@@ -67,6 +72,11 @@ export type TPlaceOrderInput = {
   paymentProvider: PaymentProvider;
   shippingAmount?: string | undefined;
   tax?: number | undefined;
+  utmSource?: string | null | undefined;
+  utmMedium?: string | null | undefined;
+  utmCampaign?: string | null | undefined;
+  utmTerm?: string | null | undefined;
+  utmContent?: string | null | undefined;
 };
 
 export type TCartItemWithDetails = {

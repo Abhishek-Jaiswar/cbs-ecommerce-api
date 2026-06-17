@@ -217,6 +217,11 @@ class OrderService {
         paymentProvider: payload.paymentProvider,
         couponCode: payload.couponCode ?? null,
         shippingAddress: address,
+        utmSource: payload.utmSource ?? null,
+        utmMedium: payload.utmMedium ?? null,
+        utmCampaign: payload.utmCampaign ?? null,
+        utmTerm: payload.utmTerm ?? null,
+        utmContent: payload.utmContent ?? null,
       },
       cartPayload as TCartItem[]
     );

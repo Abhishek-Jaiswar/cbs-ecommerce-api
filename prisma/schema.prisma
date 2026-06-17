@@ -462,10 +462,18 @@ model Order {
   payments   Payment[]
   couponUse  CouponRedemption?
 
+  // UTM Attribution Fields
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+
   @@index([userId])
   @@index([status])
   @@index([paymentStatus])
   @@index([createdAt])
+  @@index([utmCampaign])
 }
 
 model OrderItem {
@@ -706,4 +714,31 @@ model Announcement {
   updatedAt DateTime @updatedAt
 
   @@index([isActive])
+}
+
+model CampaignBudget {
+  id           String   @id @default(cuid())
+  campaignName String   @unique // Matches Order.utmCampaign
+  source       String?
+  medium       String?
+  budget       Decimal  @db.Decimal(10, 2) @default(0) // Ad Spend / Cost
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([campaignName])
+}
+
+model AnalyticsEvent {
+  id           String   @id @default(cuid())
+  eventName    String   // page_view, view_item, add_to_cart, begin_checkout, purchase
+  utmCampaign  String?
+  utmSource    String?
+  utmMedium    String?
+  sessionValue String?  // Optional session identifier
+  metadata     Json?    // Extra contextual data (e.g. productId, totalAmount)
+  createdAt    DateTime @default(now())
+
+  @@index([eventName])
+  @@index([utmCampaign])
+  @@index([createdAt])
 }
