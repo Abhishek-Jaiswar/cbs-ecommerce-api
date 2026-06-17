@@ -25,6 +25,7 @@ import paymentRoutes from "../src/modules/payments/payment.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import announcementRoutes from "./modules/announcements/announcement.routes.js";
 import reportsRoutes from "./modules/reports/reports.routes.js";
+import blogCategoryRoutes from "./modules/blog-category/blog-categories.route.js";
 import os from "os";
 
 export const startApp = (): Application => {
@@ -101,6 +102,7 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/dashboard`, dashboardRoutes);
   app.use(`/api/${Env.API_VERSION}/announcements`, announcementRoutes);
   app.use(`/api/${Env.API_VERSION}/reports`, reportsRoutes);
+  app.use(`/api/${Env.API_VERSION}/blog-categories`, blogCategoryRoutes);
 
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();
