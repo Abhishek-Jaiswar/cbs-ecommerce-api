@@ -19,7 +19,6 @@ const router: Router =
 
 
 
-
 router.get(
   "/",
   blogCategoryController.getCategories
@@ -37,9 +36,11 @@ router.get(
 
 
 
+
 router.post(
   "/",
- 
+  requireAuth,
+  requireRole("ADMIN"),
 
   blogCategoryController.createCategory
 );
@@ -47,7 +48,9 @@ router.post(
 router.put(
   "/:id",
 
- 
+  requireAuth,
+
+  requireRole("ADMIN"),
 
   blogCategoryController.updateCategory
 );
@@ -55,7 +58,9 @@ router.put(
 router.delete(
   "/:id",
 
- 
+  requireAuth,
+
+  requireRole("ADMIN"),
 
   blogCategoryController.deleteCategory
 );
