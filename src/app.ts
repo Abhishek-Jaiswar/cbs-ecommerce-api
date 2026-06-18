@@ -102,7 +102,7 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/dashboard`, dashboardRoutes);
   app.use(`/api/${Env.API_VERSION}/announcements`, announcementRoutes);
   app.use(`/api/${Env.API_VERSION}/reports`, reportsRoutes);
-  app.use(`/api/${Env.API_VERSION}/blog-categories`, blogCategoryRoutes);
+ 
 
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();
