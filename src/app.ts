@@ -25,7 +25,7 @@ import paymentRoutes from "../src/modules/payments/payment.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import announcementRoutes from "./modules/announcements/announcement.routes.js";
 import reportsRoutes from "./modules/reports/reports.routes.js";
-import blogCategoryRoutes from "./modules/blog-category/blog-categories.route.js";
+
 import os from "os";
 
 export const startApp = (): Application => {
