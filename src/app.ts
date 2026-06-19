@@ -24,6 +24,7 @@ import orderRoutes from "./modules/orders/order.routes.js";
 import paymentRoutes from "../src/modules/payments/payment.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import announcementRoutes from "./modules/announcements/announcement.routes.js";
+import blogCategoryRoutes from "./modules/blog-category/blog-categories.route.js";
 import reportsRoutes from "./modules/reports/reports.routes.js";
 import blogPostRoutes from "./modules/blog-post/blog-post.route.js";
 
@@ -102,6 +103,7 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/payments`, paymentRoutes);
   app.use(`/api/${Env.API_VERSION}/dashboard`, dashboardRoutes);
   app.use(`/api/${Env.API_VERSION}/announcements`, announcementRoutes);
+  app.use(`/api/${Env.API_VERSION}/blog-categories`, blogCategoryRoutes);
   app.use(`/api/${Env.API_VERSION}/reports`, reportsRoutes);
   app.use(`/api/${Env.API_VERSION}/blog-posts`, blogPostRoutes);
  
