@@ -1,6 +1,8 @@
 import { BadRequestError, NotFoundError } from "../../utils/errors/app-error.js";
 import { productCache } from "./products.cache.js";
 import { productRepository } from "./products.repository.js";
+import { offerService } from "../offers/offer.service.js";
+import { applyOffersToProduct } from "../offers/offer-calculation.helper.js";
 import type {
   TBasicInfoDTO,
   TProductColorDTO,
@@ -17,9 +19,12 @@ import { uploadService } from "../../services/storage/upload.service.js";
 
 class ProductService {
   async getProductsForListing(page: number, limit: number) {
-    return await productCache.getOrSetProductLists(page, limit, () =>
-      productRepository.getProductsForListing(page, limit)
-    );
+    return await productCache.getOrSetProductLists(page, limit, async () => {
+      const result = await productRepository.getProductsForListing(page, limit);
+      const activeOffers = await offerService.getActiveOffers();
+      result.items = result.items.map((product: any) => applyOffersToProduct(product, activeOffers));
+      return result;
+    });
   }
 
   async getProductsForAdmin(page: number, limit: number) {
@@ -27,9 +32,12 @@ class ProductService {
   }
 
   async getProductsById(id: string) {
-    const products = await productCache.getOrSetProductDetails(id, () =>
-      productRepository.getProductById(id)
-    );
+    const products = await productCache.getOrSetProductDetails(id, async () => {
+      const product = await productRepository.getProductById(id);
+      if (!product) return null;
+      const activeOffers = await offerService.getActiveOffers();
+      return applyOffersToProduct(product, activeOffers);
+    });
 
     if (!products) {
       throw new NotFoundError("Product not found");
@@ -39,9 +47,12 @@ class ProductService {
   }
 
   async getProductBySlug(slug: string) {
-    const product = await productCache.getOrSetProductDetails(slug, () =>
-      productRepository.getProductBySlug(slug)
-    );
+    const product = await productCache.getOrSetProductDetails(slug, async () => {
+      const prod = await productRepository.getProductBySlug(slug);
+      if (!prod) return null;
+      const activeOffers = await offerService.getActiveOffers();
+      return applyOffersToProduct(prod, activeOffers);
+    });
     
     if (!product) {
       throw new NotFoundError("Product not found");

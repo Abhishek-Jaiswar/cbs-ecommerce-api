@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const BasicInfoSchema = z.object({
+export const BasicInfoObjectSchema = z.object({
   name: z.string().min(1, "Product name is required").max(255),
 
   slug: z
@@ -15,9 +15,11 @@ export const BasicInfoSchema = z.object({
   excerpt: z.string().min(1, "Product excerpt is required"),
   description: z.string().min(1, "Product description is required"),
 
-  price: z.coerce.number().positive("Price must be greater than 0"),
+  price: z.coerce.number().positive("Selling price must be greater than 0"),
 
-  originalPrice: z.coerce.number().positive().optional(),
+  originalPrice: z.coerce.number().positive("MRP must be greater than 0"),
+
+  costPrice: z.coerce.number().nonnegative("Cost price must be greater than or equal to 0").default(0),
 
   offerEnds: z.coerce.date().optional(),
 
@@ -25,6 +27,11 @@ export const BasicInfoSchema = z.object({
   isSale: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
   forListing: z.boolean().default(false),
+});
+
+export const BasicInfoSchema = BasicInfoObjectSchema.refine((data) => data.price <= data.originalPrice, {
+  message: "Selling price must be less than or equal to MRP",
+  path: ["price"],
 });
 
 export const productColorSchema = z.object({

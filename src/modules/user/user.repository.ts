@@ -41,6 +41,8 @@ class UserRepository {
         name: true,
         role: true,
         emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -59,6 +61,8 @@ class UserRepository {
         name: true,
         role: true,
         emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }

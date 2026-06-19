@@ -1,6 +1,7 @@
 import { offerRepository } from "./offer.repository.js";
 import { ConflictError, NotFoundError, BadRequestError } from "../../utils/errors/app-error.js";
 import type { TCreateOfferDTO, TUpdateOfferDTO } from "./offer.schema.js";
+import { productCache } from "../products/products.cache.js";
 
 class OfferService {
   async getOffers(page: number, limit: number) {
@@ -25,7 +26,9 @@ class OfferService {
       throw new BadRequestError("End date must be after start date.");
     }
 
-    return offerRepository.createOffer(payload);
+    const offer = await offerRepository.createOffer(payload);
+    await productCache.invalidateProductLists();
+    return offer;
   }
 
   async updateOffer(offerId: string, payload: TUpdateOfferDTO) {
@@ -44,17 +47,22 @@ class OfferService {
       throw new BadRequestError("End date must be after start date.");
     }
 
-    return offerRepository.updateOffer(offerId, payload);
+    const updated = await offerRepository.updateOffer(offerId, payload);
+    await productCache.invalidateProductLists();
+    return updated;
   }
 
   async updateStatus(offerId: string, isActive: boolean) {
     await this.getOfferById(offerId);
-    return offerRepository.updateStatus(offerId, isActive);
+    const updated = await offerRepository.updateStatus(offerId, isActive);
+    await productCache.invalidateProductLists();
+    return updated;
   }
 
   async deleteOffer(offerId: string) {
     await this.getOfferById(offerId);
     await offerRepository.deleteOffer(offerId);
+    await productCache.invalidateProductLists();
     return { success: true };
   }
 

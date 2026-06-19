@@ -25,6 +25,9 @@ import paymentRoutes from "../src/modules/payments/payment.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import announcementRoutes from "./modules/announcements/announcement.routes.js";
 import blogCategoryRoutes from "./modules/blog-category/blog-categories.route.js";
+import reportsRoutes from "./modules/reports/reports.routes.js";
+import blogPostRoutes from "./modules/blog-post/blog-post.route.js";
+
 import os from "os";
 
 export const startApp = (): Application => {
@@ -57,19 +60,33 @@ export const startApp = (): Application => {
   app.use(cookieParser());
   app.use(express.urlencoded({ extended: true }));
   app.disable("x-powered-by");
+  app.use("/public", express.static("public"));
+  app.use(`/api/${Env.API_VERSION}/public`, express.static("public"));
 
   app.use(correlationMiddleware);
   app.use(requestLogger);
 
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 2000, // High limit for general browsing, page assets, and analytics
     message: "Too many requests, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
   });
 
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30, // Strict limit for auth endpoints to prevent brute-force attacks
+    message: "Too many login or registration attempts, please try again after 15 minutes.",
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
   app.use(`/api/${Env.API_VERSION}`, apiLimiter);
+  app.use(`/api/${Env.API_VERSION}/auth/login`, authLimiter);
+  app.use(`/api/${Env.API_VERSION}/auth/register`, authLimiter);
+  app.use(`/api/${Env.API_VERSION}/auth/forgot-password`, authLimiter);
+  app.use(`/api/${Env.API_VERSION}/auth/email-verification`, authLimiter);
   app.use(`/api/${Env.API_VERSION}/auth`, authRoutes);
   app.use(`/api/${Env.API_VERSION}/categories`, categoryRoutes);
   app.use(`/api/${Env.API_VERSION}/brands`, brandRoutes);
@@ -87,6 +104,9 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/dashboard`, dashboardRoutes);
   app.use(`/api/${Env.API_VERSION}/announcements`, announcementRoutes);
   app.use(`/api/${Env.API_VERSION}/blog-categories`, blogCategoryRoutes);
+  app.use(`/api/${Env.API_VERSION}/reports`, reportsRoutes);
+  app.use(`/api/${Env.API_VERSION}/blog-posts`, blogPostRoutes);
+ 
 
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();

@@ -17,7 +17,7 @@ class UserService {
     const existingUser = await userRepository.findUserByEmail(payload.email);
 
     if (existingUser) {
-      throw new ConflictError("User already exists with this email.");
+      throw new ConflictError("Email already exists.");
     }
 
     const hashedPassword = await argon2.hash(payload.password, {
@@ -41,13 +41,13 @@ class UserService {
     const user = await userRepository.findUserByEmail(email);
 
     if (!user) {
-      throw new NotFoundError("User with this email not found.");
+      throw new UnauthorizedError("Invalid email or password.");
     }
 
     const validPassword = await argon2.verify(user.password, password);
 
     if (!validPassword) {
-      throw new UnauthorizedError("Invalid credentials.");
+      throw new UnauthorizedError("Invalid email or password.");
     }
 
     if (!user.emailVerified) {
@@ -178,7 +178,13 @@ class UserService {
       await userCache.deleteEmailVerificationOtp(email);
 
       return {
-        email,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
         verified: true,
       };
     }
@@ -201,8 +207,14 @@ class UserService {
     await userCache.invalidateUser(user.id);
 
     return {
+      id: verifiedUser.id,
+      name: verifiedUser.name,
       email: verifiedUser.email,
-      verified: verifiedUser.emailVerified,
+      emailVerified: verifiedUser.emailVerified,
+      role: verifiedUser.role,
+      createdAt: verifiedUser.createdAt,
+      updatedAt: verifiedUser.updatedAt,
+      verified: true,
     };
   }
 

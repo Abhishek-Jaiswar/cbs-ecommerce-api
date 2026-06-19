@@ -1,10 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import z from "zod";
+import jwt from "jsonwebtoken";
+import { Env } from "../../config/env.config.js";
 import { BadRequestError } from "../../utils/errors/app-error.js";
 import { productService } from "./products.service.js";
 import type { ProductStatus } from "../../generated/prisma/client.js";
 import {
   BasicInfoSchema,
+  BasicInfoObjectSchema,
   productColorSchema,
   productSizeSchema,
   productVariantSchema,
@@ -14,6 +17,68 @@ import {
   type TProductSpecificationDTO,
 } from "./product.schema.js";
 
+const isAdminRequest = (req: Request): boolean => {
+  try {
+    const token = req.cookies?.accessToken;
+    if (!token) return false;
+    const payload = jwt.verify(token, Env.JWT_SECRET) as any;
+    return payload?.role === "ADMIN";
+  } catch (error) {
+    return false;
+  }
+};
+
+const formatProduct = (product: any, isAdmin: boolean) => {
+  if (!product) return product;
+
+  // Ensure decimals are parsed to numbers
+  const price = typeof product.price === "object" && product.price?.toNumber ? product.price.toNumber() : Number(product.price);
+  const originalPrice = product.originalPrice !== null && product.originalPrice !== undefined
+    ? (typeof product.originalPrice === "object" && product.originalPrice?.toNumber ? product.originalPrice.toNumber() : Number(product.originalPrice))
+    : null;
+  const costPrice = product.costPrice !== null && product.costPrice !== undefined
+    ? (typeof product.costPrice === "object" && product.costPrice?.toNumber ? product.costPrice.toNumber() : Number(product.costPrice))
+    : 0;
+
+  const discountPercentage = originalPrice && originalPrice > 0
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : 0;
+
+  // Base formatted product
+  const formatted: any = {
+    ...product,
+    price,
+    originalPrice,
+    discountPercentage,
+  };
+
+  if (isAdmin) {
+    const profitAmount = price - costPrice;
+    const profitMarginPercentage = price > 0 ? Math.round(((price - costPrice) / price) * 100) : 0;
+    formatted.costPrice = costPrice;
+    formatted.profitAmount = profitAmount;
+    formatted.profitMarginPercentage = profitMarginPercentage;
+  } else {
+    delete formatted.costPrice;
+  }
+
+  // Also handle variants price formatting if present
+  if (formatted.variants && Array.isArray(formatted.variants)) {
+    formatted.variants = formatted.variants.map((v: any) => {
+      const vPrice = v.price !== null && v.price !== undefined
+        ? (typeof v.price === "object" && v.price?.toNumber ? v.price.toNumber() : Number(v.price))
+        : null;
+      return {
+        ...v,
+        price: vPrice,
+      };
+    });
+  }
+
+  return formatted;
+};
+
+
 class ProductController {
   async getProducts(req: Request, res: Response, next: NextFunction) {
     try {
@@ -21,11 +86,16 @@ class ProductController {
       const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
 
       const result = await productService.getProductsForListing(page, limit);
+      const isAdmin = isAdminRequest(req);
+      const formattedItems = result.items.map((item: any) => formatProduct(item, isAdmin));
 
       return res.status(200).json({
         success: true,
         message: "Products fetched successfully",
-        data: result,
+        data: {
+          ...result,
+          items: formattedItems,
+        },
       });
     } catch (error) {
       next(error);
@@ -38,11 +108,15 @@ class ProductController {
       const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 200);
 
       const result = await productService.getProductsForAdmin(page, limit);
+      const formattedItems = result.items.map((item: any) => formatProduct(item, true));
 
       return res.status(200).json({
         success: true,
         message: "Admin products fetched successfully",
-        data: result,
+        data: {
+          ...result,
+          items: formattedItems,
+        },
       });
     } catch (error) {
       next(error);
@@ -57,11 +131,13 @@ class ProductController {
       }
 
       const product = await productService.getProductsById(id);
+      const isAdmin = isAdminRequest(req);
+      const formattedProduct = formatProduct(product, isAdmin);
 
       return res.status(200).json({
         success: true,
         message: "Product details fetched successfully",
-        data: product,
+        data: formattedProduct,
       });
     } catch (error) {
       next(error);
@@ -76,11 +152,13 @@ class ProductController {
       }
 
       const product = await productService.getProductBySlug(slug);
+      const isAdmin = isAdminRequest(req);
+      const formattedProduct = formatProduct(product, isAdmin);
 
       return res.status(200).json({
         success: true,
         message: "Product details fetched successfully",
-        data: product,
+        data: formattedProduct,
       });
     } catch (error) {
       next(error);
@@ -155,7 +233,7 @@ class ProductController {
         throw new BadRequestError("Product ID is required");
       }
 
-      const validation = BasicInfoSchema.partial().safeParse(req.body);
+      const validation = BasicInfoObjectSchema.partial().safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
           success: false,

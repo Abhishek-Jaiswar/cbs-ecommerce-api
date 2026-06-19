@@ -25,6 +25,7 @@ model User {
   orders            Order[]
   blogPosts         BlogPost[]
   couponRedemptions CouponRedemption[]
+  generatedReports  GeneratedReport[]
 
   @@index([email])
   @@index([role])
@@ -71,6 +72,8 @@ model Product {
 
   price         Decimal  @db.Decimal(10, 2)
   originalPrice Decimal? @db.Decimal(10, 2)
+  costPrice     Decimal  @db.Decimal(10, 2) @default(0.00)
+
 
   offerEnds DateTime?
 
@@ -491,6 +494,13 @@ model OrderItem {
   unitPrice  Decimal @db.Decimal(10, 2)
   totalPrice Decimal @db.Decimal(10, 2)
 
+  sellingPriceAtPurchase Decimal @db.Decimal(10, 2) @default(0.00)
+  costPriceAtPurchase    Decimal @db.Decimal(10, 2) @default(0.00)
+  mrpAtPurchase          Decimal @db.Decimal(10, 2) @default(0.00)
+  appliedOfferId         String?
+  appliedOfferName       String?
+  offerDiscountAmount    Decimal @db.Decimal(10, 2) @default(0.00)
+
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -742,3 +752,19 @@ model AnalyticsEvent {
   @@index([utmCampaign])
   @@index([createdAt])
 }
+
+model GeneratedReport {
+  id            String   @id @default(cuid())
+  name          String
+  reportType    String   // SALES, PROFIT, DISCOUNT, INVENTORY, PERFORMANCE, CUSTOMER, ORDER
+  dateRange     String
+  format        String   // CSV, XLSX
+  downloadUrl   String
+  generatedById String
+  generatedBy   User     @relation(fields: [generatedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@index([generatedById])
+  @@index([reportType])
+}
+
