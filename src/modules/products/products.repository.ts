@@ -53,7 +53,8 @@ class ProductRepository {
           variants: {
             select: {
               id: true,
-              stock: true,
+              physicalQty: true,
+              committedQty: true,
             },
           },
           colors: {
@@ -77,8 +78,16 @@ class ProductRepository {
       }),
     ]);
 
+    const mappedItems = items.map((product) => ({
+      ...product,
+      variants: product.variants.map((v) => ({
+        ...v,
+        stock: v.physicalQty - (v.committedQty || 0),
+      })),
+    }));
+
     return {
-      items,
+      items: mappedItems,
       total,
       page,
       limit,
@@ -126,7 +135,7 @@ class ProductRepository {
   }
 
   async getProductById(id: string) {
-    return await prisma.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: {
         id,
       },
@@ -150,10 +159,20 @@ class ProductRepository {
         specification: true,
       },
     });
+
+    if (!product) return null;
+
+    return {
+      ...product,
+      variants: product.variants.map((v) => ({
+        ...v,
+        stock: v.physicalQty - (v.committedQty || 0),
+      })),
+    };
   }
 
   async getProductBySlug(slug: string) {
-    return await prisma.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: {
         slug,
       },
@@ -206,7 +225,8 @@ class ProductRepository {
           select: {
             id: true,
             sku: true,
-            stock: true,
+            physicalQty: true,
+            committedQty: true,
             price: true,
             size: {
               select: {
@@ -247,6 +267,16 @@ class ProductRepository {
         },
       },
     });
+
+    if (!product) return null;
+
+    return {
+      ...product,
+      variants: product.variants.map((v) => ({
+        ...v,
+        stock: v.physicalQty - (v.committedQty || 0),
+      })),
+    };
   }
 
   async createBasicInfo(payload: TBasicInfoDTO) {
@@ -306,11 +336,16 @@ class ProductRepository {
   }
 
   async getProductVariantById(variantId: string) {
-    return prisma.productVariant.findUnique({
+    const variant = await prisma.productVariant.findUnique({
       where: {
         id: variantId,
       },
     });
+    if (!variant) return null;
+    return {
+      ...variant,
+      stock: variant.physicalQty - (variant.committedQty || 0),
+    };
   }
 
   async getProductImageById(imageId: string) {
@@ -412,16 +447,20 @@ class ProductRepository {
   }
 
   async createProductVariant(productId: string, payload: TProductVariantWithSku) {
-    return prisma.productVariant.create({
+    const variant = await prisma.productVariant.create({
       data: {
         productId,
         colorId: payload.colorId,
         sizeId: payload.sizeId,
-        stock: payload.stock,
+        physicalQty: payload.stock,
         price: payload.price,
         sku: payload.sku,
       },
     });
+    return {
+      ...variant,
+      stock: variant.physicalQty - (variant.committedQty || 0),
+    };
   }
 
   async deleteProductVariant(variantId: string) {
@@ -606,137 +645,6 @@ class ProductRepository {
         id: true,
         status: true,
       },
-    });
-  }
-
-  async getAllVariants(params: {
-    page: number;
-    limit: number;
-    search?: string | undefined;
-    stockStatus?: string | undefined;
-  }) {
-    const { page, limit, search, stockStatus } = params;
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ProductVariantWhereInput = {};
-
-    if (search) {
-      where.OR = [
-        {
-          sku: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-        {
-          product: {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        },
-      ];
-    }
-
-    if (stockStatus === "OUT_OF_STOCK") {
-      where.stock = 0;
-    } else if (stockStatus === "LOW_STOCK") {
-      where.stock = {
-        gt: 0,
-        lte: 10,
-      };
-    }
-
-    const [items, total] = await prisma.$transaction([
-      prisma.productVariant.findMany({
-        where,
-        skip,
-        take: limit,
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-            },
-          },
-          color: {
-            select: {
-              id: true,
-              name: true,
-              hex: true,
-            },
-          },
-          size: {
-            select: {
-              id: true,
-              value: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
-      prisma.productVariant.count({ where }),
-    ]);
-
-    const [stats, lowStockCount, outOfStockCount, totalActiveVariants] = await prisma.$transaction([
-      prisma.productVariant.aggregate({
-        _sum: {
-          stock: true,
-        },
-      }),
-      prisma.productVariant.count({
-        where: {
-          stock: {
-            gt: 0,
-            lte: 10,
-          },
-        },
-      }),
-      prisma.productVariant.count({
-        where: {
-          stock: 0,
-        },
-      }),
-      prisma.productVariant.count(),
-    ]);
-
-    const totalStock = stats._sum.stock ?? 0;
-
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      insights: {
-        totalStock,
-        totalVariants: totalActiveVariants,
-        outOfStockCount,
-        lowStockCount,
-      },
-    };
-  }
-
-  async updateProductVariant(
-    variantId: string,
-    payload: { price?: number | null | undefined; stock?: number | undefined }
-  ) {
-    const data: Prisma.ProductVariantUpdateInput = {};
-    if (payload.price !== undefined) {
-      data.price = payload.price;
-    }
-    if (payload.stock !== undefined) {
-      data.stock = payload.stock;
-    }
-    return prisma.productVariant.update({
-      where: {
-        id: variantId,
-      },
-      data,
     });
   }
 }

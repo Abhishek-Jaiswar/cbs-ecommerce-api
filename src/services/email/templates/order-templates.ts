@@ -182,3 +182,88 @@ export const orderDeliveredTemplate = (order: any, userName: string, isAdmin: bo
 
   return emailLayout("Order Delivered", content);
 };
+
+export const purchaseOrderTemplate = (po: any, customNotes?: string) => {
+  const itemsHtml = po.items
+    .map(
+      (item: any) => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f2f2f2; font-size: 14px;">
+        <div><strong>${item.variant.product.name}</strong></div>
+        ${
+          item.variant.color || item.variant.size
+            ? `<div style="font-size: 12px; color: #666666; margin-top: 2px;">
+                 ${item.variant.color ? `Color: ${item.variant.color.name}` : ""}
+                 ${item.variant.size ? ` Size: ${item.variant.size.value}` : ""}
+               </div>`
+            : ""
+        }
+        ${item.variant.sku ? `<div style="font-size: 11px; color: #888888; margin-top: 2px;">SKU: ${item.variant.sku}</div>` : ""}
+      </td>
+      <td style="padding: 12px 0; text-align: center; border-bottom: 1px solid #f2f2f2; font-size: 14px; color: #444444;">
+        ${item.quantityOrdered}
+      </td>
+      <td style="padding: 12px 0; text-align: right; border-bottom: 1px solid #f2f2f2; font-size: 14px; color: #444444;">
+        ${formatPrice(item.unitCost)}
+      </td>
+      <td style="padding: 12px 0; text-align: right; border-bottom: 1px solid #f2f2f2; font-size: 14px; font-weight: 500;">
+        ${formatPrice(Number(item.quantityOrdered) * Number(item.unitCost))}
+      </td>
+    </tr>
+  `
+    )
+    .join("");
+
+  const content = `
+    <h3>Purchase Order Request</h3>
+    <p>Dear ${po.supplier.contactName || po.supplier.name},</p>
+    <p>Please find details of our purchase order <strong>${po.poNumber}</strong> below. Please review the items and fulfill this replenishment request at your earliest convenience.</p>
+    
+    <div style="background-color: #fcfbfa; border: 1px solid #f3ebe0; padding: 20px; margin: 25px 0; font-size: 14px;">
+      <div style="margin-bottom: 8px;"><strong>PO Number:</strong> ${po.poNumber}</div>
+      <div style="margin-bottom: 8px;"><strong>Date Issued:</strong> ${new Date(po.createdAt).toLocaleDateString("en-IN")}</div>
+      <div style="margin-bottom: 8px;"><strong>Supplier:</strong> ${po.supplier.name}</div>
+      ${po.supplier.phone ? `<div style="margin-bottom: 8px;"><strong>Phone:</strong> ${po.supplier.phone}</div>` : ""}
+      <div><strong>Status:</strong> SENT (Approved)</div>
+    </div>
+
+    ${
+      customNotes
+        ? `
+    <div style="background-color: #f6f6f6; border-left: 4px solid #c29958; padding: 15px; margin: 20px 0; font-size: 14px; font-style: italic; white-space: pre-line;">
+      <strong>Additional Notes / Instructions:</strong><br />
+      ${customNotes}
+    </div>
+    `
+        : ""
+    }
+
+    <h4 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #111111; padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px;">Order Summary</h4>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="text-align: left; font-size: 12px; text-transform: uppercase; color: #888888; padding-bottom: 10px; border-bottom: 1px solid #eaeaea;">Item Description</th>
+          <th style="text-align: center; font-size: 12px; text-transform: uppercase; color: #888888; padding-bottom: 10px; border-bottom: 1px solid #eaeaea; width: 80px;">Qty</th>
+          <th style="text-align: right; font-size: 12px; text-transform: uppercase; color: #888888; padding-bottom: 10px; border-bottom: 1px solid #eaeaea; width: 100px;">Unit Cost</th>
+          <th style="text-align: right; font-size: 12px; text-transform: uppercase; color: #888888; padding-bottom: 10px; border-bottom: 1px solid #eaeaea; width: 100px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHtml}
+      </tbody>
+    </table>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 30px;">
+      <tr>
+        <td style="padding: 12px 0 0 0; border-top: 1px solid #eaeaea; font-size: 16px; font-weight: bold;">Total PO Value</td>
+        <td style="padding: 12px 0 0 0; border-top: 1px solid #eaeaea; text-align: right; font-size: 16px; font-weight: bold; color: #c29958;">${formatPrice(po.totalAmount)}</td>
+      </tr>
+    </table>
+
+    <p style="font-size: 14px; color: #555555; margin-top: 30px;">
+      Please reply directly to this email to confirm receipt and provide an estimated delivery date.
+    </p>
+  `;
+
+  return emailLayout("Purchase Order Request", content);
+};

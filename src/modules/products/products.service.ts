@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError } from "../../utils/errors/app-error.js"
 import { productCache } from "./products.cache.js";
 import { productRepository } from "./products.repository.js";
 import { offerService } from "../offers/offer.service.js";
+import { generateStructuredSku } from "../../helpers/sku-helper.js";
 import { applyOffersToProduct } from "../offers/offer-calculation.helper.js";
 import type {
   TBasicInfoDTO,
@@ -13,7 +14,6 @@ import type {
 import { productCategoryRepository } from "../categories/product-category.repository.js";
 import { brandRepository } from "../brands/brands.repository.js";
 import type { ProductStatus } from "../../generated/prisma/client.js";
-import { nanoid } from "nanoid";
 import type { TImageUpload } from "./product.types.js";
 import { uploadService } from "../../services/storage/upload.service.js";
 
@@ -185,7 +185,7 @@ class ProductService {
       throw new BadRequestError("Specified product color or size does not exist for this product");
     }
 
-    const sku = this.generateVariantSku();
+    const sku = await generateStructuredSku(productId, payload.colorId, payload.sizeId);
 
     const newPayload = {
       ...payload,
@@ -358,34 +358,6 @@ class ProductService {
     await productCache.invalidateProducts(productId);
 
     return updated;
-  }
-
-  async getAllVariants(params: {
-    page: number;
-    limit: number;
-    search?: string | undefined;
-    stockStatus?: string | undefined;
-  }) {
-    return await productRepository.getAllVariants(params);
-  }
-
-  async updateProductVariant(
-    variantId: string,
-    payload: { price?: number | null | undefined; stock?: number | undefined }
-  ) {
-    const variant = await productRepository.getProductVariantById(variantId);
-    if (!variant) {
-      throw new NotFoundError("Product variant not found");
-    }
-
-    const updated = await productRepository.updateProductVariant(variantId, payload);
-    await productCache.invalidateProducts(variant.productId);
-
-    return updated;
-  }
-
-  private generateVariantSku() {
-    return `ZENSKU-${nanoid(8).toUpperCase()}`;
   }
 }
 

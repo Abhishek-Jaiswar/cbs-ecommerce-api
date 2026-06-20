@@ -615,63 +615,6 @@ class ProductController {
       next(error);
     }
   }
-
-  async getAllVariants(req: Request, res: Response, next: NextFunction) {
-    try {
-      const page = Math.max(Number(req.query.page) || 1, 1);
-      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
-      const search = req.query.search as string | undefined;
-      const stockStatus = req.query.stockStatus as string | undefined;
-
-      const result = await productService.getAllVariants({
-        page,
-        limit,
-        search,
-        stockStatus,
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Variants fetched successfully",
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async updateVariant(req: Request, res: Response, next: NextFunction) {
-    try {
-      const variantId = req.params.variantId as string;
-      if (!variantId) {
-        throw new BadRequestError("Variant ID is required");
-      }
-
-      const updateSchema = z.object({
-        price: z.number().nullable().optional(),
-        stock: z.number().int().nonnegative().optional(),
-      });
-
-      const validation = updateSchema.safeParse(req.body);
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: "Validation Failed",
-          error: validation.error.issues.map((issue) => issue.message),
-        });
-      }
-
-      const updated = await productService.updateProductVariant(variantId, validation.data);
-
-      return res.status(200).json({
-        success: true,
-        message: "Product variant updated successfully",
-        data: updated,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 }
 
 export const productController = new ProductController();

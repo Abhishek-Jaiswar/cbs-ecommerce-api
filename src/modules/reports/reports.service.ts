@@ -442,12 +442,13 @@ class ReportsService {
       const cost = Number(prod.costPrice || 0);
 
       prod.variants.forEach((v) => {
-        const val = v.stock * cost;
+        const val = v.physicalQty * cost;
         totalInventoryValue += val;
 
-        if (v.stock === 0) {
+        const availableStock = v.physicalQty - v.committedQty;
+        if (availableStock === 0) {
           outOfStock += 1;
-        } else if (v.stock < 10) {
+        } else if (availableStock < 10) {
           lowStock += 1;
         }
 
@@ -456,7 +457,7 @@ class ReportsService {
         if (!categoryMap[catName]) {
           categoryMap[catName] = { category: catName, stock: 0, value: 0 };
         }
-        categoryMap[catName].stock += v.stock;
+        categoryMap[catName].stock += v.physicalQty;
         categoryMap[catName].value += val;
 
         // Brand
@@ -464,7 +465,7 @@ class ReportsService {
         if (!brandMap[brandName]) {
           brandMap[brandName] = { brand: brandName, stock: 0, value: 0 };
         }
-        brandMap[brandName].stock += v.stock;
+        brandMap[brandName].stock += v.physicalQty;
         brandMap[brandName].value += val;
 
         // Details
@@ -474,7 +475,7 @@ class ReportsService {
           sku: v.sku || "",
           color: v.color?.name || "",
           size: v.size?.value || "",
-          stock: v.stock,
+          stock: v.physicalQty,
           costPrice: cost,
           value: val,
         });

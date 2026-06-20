@@ -310,7 +310,7 @@ async function main() {
     data: {
       sku: "ZVP-X-128-GREY",
       price: 999.99,
-      stock: 50,
+      physicalQty: 50,
       productId: phoneProduct.id,
       colorId: colorSpaceGrey.id,
       sizeId: size128GB.id,
@@ -321,7 +321,7 @@ async function main() {
     data: {
       sku: "ZVP-X-256-GREY",
       price: 1099.99,
-      stock: 30,
+      physicalQty: 30,
       productId: phoneProduct.id,
       colorId: colorSpaceGrey.id,
       sizeId: size256GB.id,
@@ -332,7 +332,7 @@ async function main() {
     data: {
       sku: "ZVP-X-128-SILV",
       price: 999.99,
-      stock: 45,
+      physicalQty: 45,
       productId: phoneProduct.id,
       colorId: colorSilver.id,
       sizeId: size128GB.id,
@@ -699,7 +699,7 @@ async function main() {
           data: {
             sku,
             price: p.price,
-            stock: 50,
+            physicalQty: 50,
             productId: createdProduct.id,
             colorId: colorRec.id,
             sizeId: sizeRec.id

@@ -56,7 +56,7 @@ class DashboardService {
         },
       },
     });
-    const inventoryValue = variants.reduce((sum, v) => sum + (v.stock * Number(v.product?.costPrice || 0)), 0);
+    const inventoryValue = variants.reduce((sum, v) => sum + (v.physicalQty * Number(v.product?.costPrice || 0)), 0);
 
     const avgOrderValue = totalOrdersCount > 0 ? totalRevenueVal / totalOrdersCount : 0;
     const profitMarginPercentage = totalRevenueVal > 0 ? (totalProfit / totalRevenueVal) * 100 : 0;

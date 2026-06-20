@@ -7,6 +7,7 @@ import {
   orderCreatedTemplate,
   orderCancelledTemplate,
   orderDeliveredTemplate,
+  purchaseOrderTemplate,
 } from "./templates/order-templates.js";
 
 class MailService {
@@ -59,6 +60,11 @@ class MailService {
   async sendOrderDeliveredEmail(to: string, order: any, userName: string, isAdmin: boolean) {
     const subject = isAdmin ? `[Order Delivered] ${order.orderNumber}` : `Your order has been delivered!`;
     return this.sendEmail(to, subject, orderDeliveredTemplate(order, userName, isAdmin));
+  }
+
+  async sendPurchaseOrderEmail(to: string, po: any, customSubject?: string | undefined, customNotes?: string | undefined) {
+    const subject = customSubject || `Purchase Order ${po.poNumber} - ZenVoraa`;
+    return this.sendEmail(to, subject, purchaseOrderTemplate(po, customNotes));
   }
 }
 
