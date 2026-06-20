@@ -19,6 +19,9 @@ class CartService {
 
     const activeOffers = await offerService.getActiveOffers();
     cart.items = cart.items.map((item: any) => {
+      if (item.variant) {
+        item.variant.stock = item.variant.physicalQty - (item.variant.committedQty || 0);
+      }
       if (item.variant && item.variant.product) {
         // Apply offer to the product
         item.variant.product = applyOffersToProduct(item.variant.product, activeOffers);
@@ -64,8 +67,9 @@ class CartService {
       throw new NotFoundError("Product variant not found");
     }
 
-    if (variant.stock < quantity) {
-      throw new BadRequestError(`Insufficient stock. Only ${variant.stock} items available.`);
+    const availableQty = variant.physicalQty - variant.committedQty;
+    if (availableQty < quantity) {
+      throw new BadRequestError(`Insufficient stock. Only ${availableQty} items available.`);
     }
 
     const cart = await cartRepository.findOrCreateCart(userId);
@@ -90,8 +94,11 @@ class CartService {
 
     if (quantity > 0) {
       const variant = await cartRepository.findProductVariant(cartItem.variantId);
-      if (variant && variant.stock < quantity) {
-        throw new BadRequestError(`Insufficient stock. Only ${variant.stock} items available.`);
+      if (variant) {
+        const availableQty = variant.physicalQty - variant.committedQty;
+        if (availableQty < quantity) {
+          throw new BadRequestError(`Insufficient stock. Only ${availableQty} items available.`);
+        }
       }
     }
 

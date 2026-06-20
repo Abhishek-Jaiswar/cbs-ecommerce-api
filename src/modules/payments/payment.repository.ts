@@ -70,16 +70,6 @@ class PaymentRepository {
         },
       });
 
-      // Deduct Inventory Stock
-      for (const item of order.orderItems) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { stock: { decrement: item.quantity } },
-          });
-        }
-      }
-
       // Clear Customer's Cart
       const cart = await tx.cart.findUnique({
         where: { userId: order.userId },

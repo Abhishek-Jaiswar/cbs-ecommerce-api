@@ -27,7 +27,7 @@ import announcementRoutes from "./modules/announcements/announcement.routes.js";
 import blogCategoryRoutes from "./modules/blog-category/blog-categories.route.js";
 import reportsRoutes from "./modules/reports/reports.routes.js";
 import blogPostRoutes from "./modules/blog-post/blog-post.route.js";
-
+import inventoryRoutes from "./modules/inventory-management/inventory.routes.js";
 import os from "os";
 
 export const startApp = (): Application => {
@@ -106,7 +106,7 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/blog-categories`, blogCategoryRoutes);
   app.use(`/api/${Env.API_VERSION}/reports`, reportsRoutes);
   app.use(`/api/${Env.API_VERSION}/blog-posts`, blogPostRoutes);
- 
+  app.use(`/api/${Env.API_VERSION}/inventory`, inventoryRoutes);
 
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();

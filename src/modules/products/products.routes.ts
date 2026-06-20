@@ -12,7 +12,6 @@ router.get("/", productController.getProducts);
 // Admin-only product listing (all products, no status filter)
 router.get("/admin/all", requireAuth, requireRole("ADMIN"), productController.getAdminProducts);
 
-router.get("/variants", requireAuth, requireRole("ADMIN"), productController.getAllVariants);
 router.get("/slug/:slug", productController.getProductBySlug);
 router.get("/:id", productController.getProductById);
 router.get("/:productId/colors", productController.getColors);
@@ -53,12 +52,6 @@ router.delete(
   requireAuth,
   requireRole("ADMIN"),
   productController.deleteVariant
-);
-router.put(
-  "/variants/:variantId",
-  requireAuth,
-  requireRole("ADMIN"),
-  productController.updateVariant
 );
 
 // Images management

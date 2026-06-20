@@ -17,7 +17,6 @@ import { Env } from "../../config/env.config.js";
 import { logger } from "../../lib/winston.js";
 import type {
   TCartItem,
-  TCartItemWithDetails,
   TPlaceOrderInput,
   TShippingAddress,
 } from "./order.types.js";
@@ -145,9 +144,10 @@ class OrderService {
 
     // stock verification before proceeding
     for (const item of cart.items) {
-      if (item.quantity > item.variant.stock) {
+      const availableQty = item.variant.physicalQty - item.variant.committedQty;
+      if (item.quantity > availableQty) {
         throw new BadRequestError(
-          `Insufficiant stock for ${item.variant.product.name}, (Requestd: ${item.quantity}), Available: ${item.variant.stock}`
+          `Insufficiant stock for ${item.variant.product.name}, (Requestd: ${item.quantity}), Available: ${availableQty}`
         );
       }
     }
@@ -308,6 +308,10 @@ class OrderService {
       throw new NotFoundError("Order not found");
     }
 
+    if (payload.status === "DELIVERED" && order.status !== "SHIPPED") {
+      throw new BadRequestError("Cannot mark order as DELIVERED unless it has first been marked as SHIPPED.");
+    }
+
     const updateData: Prisma.OrderUpdateInput = {
       status: payload.status,
     };
@@ -325,7 +329,12 @@ class OrderService {
       updateData.cancelledAt = new Date();
     }
 
-    const updatedOrder = await orderRepository.updateOrder(orderId, updateData);
+    let updatedOrder;
+    if (payload.status === "SHIPPED") {
+      updatedOrder = await orderRepository.shipOrder(orderId, updateData);
+    } else {
+      updatedOrder = await orderRepository.updateOrder(orderId, updateData);
+    }
     await orderCache.invalidateOrders(orderId);
 
     // Send emails based on the new status
