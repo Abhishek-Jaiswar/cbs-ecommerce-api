@@ -308,3 +308,126 @@ This scenario tracks how low stock triggers restock workflows.
      * **Physical Stock** increases by `50`.
      * **Available Stock** increases by `50` (allowing customers to buy again).
      * An `InventoryTransaction` is recorded: `REPLENISHMENT` (`qtyChange: +50`, linked to `poId`).
+
+---
+
+## 7. Product Lifecycle & Inventory Initialization Flow
+
+This section details how a jewelry product moves from creation to becoming a sellable inventory item within the Zenvora platform, compared and aligned with the current system implementation.
+
+---
+
+### Step 1: Create the Core Product
+The administrator begins by creating the basic product information.
+* **Admin Action**: Creates a new product entering Product Name, Description, Base Price, Category, Brand, and Product Specifications (e.g. *Royal Kundan Necklace Set*, Category: *Necklaces*).
+* **System Action**: Creates a new `Product` database record.
+  * Default Values: `status = DRAFT`, `forListing = false`.
+* **Inventory Status**: No inventory exists yet. No SKU is generated, and no stock is registered. The product acts purely as a container for future variants.
+
+---
+
+### Step 2: Configure Product Options
+The administrator defines the available attributes that will be used to create sellable variants.
+* **Admin Action**: Creates options such as Colors (*Gold Plated*, *Silver Plated*) and Sizes (*One Size*).
+* **System Action**: Creates `ProductColor` and `ProductSize` records linked to the parent `Product`.
+* **Inventory Status**: Still no inventory exists. No stock can be sold until variants are generated.
+
+---
+
+### Step 3: Generate Product Variants (Inventory Initialization)
+This is the stage where inventory management officially begins.
+* **Admin Action**: Generates variants for the product (e.g., *Gold Plated / One Size*, *Silver Plated / One Size*).
+* **System Action**: Creates `ProductVariant` records.
+  * **SKU Generation**: The system automatically generates a unique SKU using the format defined in [sku-helper.ts](file:///c:/Users/abhis/Desktop/cbs-ecommerce/server/src/helpers/sku-helper.ts): `ZV-[CATEGORY]-[STYLE_CODE]-[COLOR]-[SIZE]`.
+    * *Example Gold*: `ZV-NKL-ROY9A4-GLD-OS`
+    * *Example Silver*: `ZV-NKL-ROY9A4-SLV-OS`
+  * **Initial Stock Levels**: Variant records are initialized with:
+    * `physicalQty = 0`
+    * `committedQty = 0`
+    * `onOrderQty = 0`
+    * Dynamic Available Stock (`physicalQty - committedQty`) = `0`
+* **Warehouse Mappings**: The database schema maps inventory per location via the `WarehouseStock` model. When variants are generated, `WarehouseStock` records are initialized for each warehouse with `physicalQty = 0` and `committedQty = 0`, ensuring inventory tracking is enabled per location from day one.
+* **Storefront Status**: The storefront displays the variant as **Out of Stock** because Available Stock is `0`.
+
+---
+
+### Step 4: Add Initial Inventory (Manual Adjustment)
+Once physical inventory arrives, the administrator records the opening stock quantities.
+* **Admin Action**: Records the count (e.g., *Gold Plated / One Size = 20 Units*, *Silver Plated / One Size = 10 Units*).
+* **API Action**: Sends an adjustment request to `POST /api/v1/inventory/adjust` with type `MANUAL_ADJUSTMENT`, specifying the variant and quantity change (+20).
+* **System Action**: Updates the target variant's `physicalQty` in the database.
+* **Audit Trail**: Writes an `InventoryTransaction` record:
+  * `type = MANUAL_ADJUSTMENT`
+  * `qtyChange = +20`
+  * `previousQty = 0`
+  * `newQty = 20`
+  * `reason = "Initial Stock Intake"`
+
+---
+
+### Step 5: Publish Product
+After inventory is available, the administrator activates the product.
+* **Admin Action**: Sets `status = ACTIVE` and `forListing = true`.
+* **System Action**: The storefront begins displaying inventory using Available Stock (`physicalQty - committedQty`).
+  * *Gold Plated Variant*: 20 Units Available
+  * *Silver Plated Variant*: 10 Units Available
+* **Business Result**: Customers can now view the product, add variants to their cart, and place orders.
+
+---
+
+### Step 6: Stock Depletion & Low-Stock Monitoring
+As customers purchase variants, inventory levels decrease.
+* **Scenario**: Customers purchase 6 units of *Silver Plated / One Size* (`ZV-NKL-ROY9A4-SLV-OS`).
+* **Fulfillment Pipeline**:
+  * On order placement: `committedQty` increases by `6`, available stock drops to `4`.
+  * On order shipment: `physicalQty` drops to `4`, `committedQty` decreases back to `0`, available stock remains `4`.
+  * An `InventoryTransaction` with type `ORDER_SHIPPED` is recorded.
+* **Reorder Threshold Check**: Since the variant's Available Stock (`4`) is less than or equal to its `reorderPoint` (`5`), it is flagged as **Low Stock**.
+* **Automated Action**: Low stock items are highlighted in the Restock Dashboard to trigger replenishment alerts.
+
+---
+
+### Step 7: Purchase Order (PO) Creation
+The Store Manager initiates a replenishment request.
+* **Admin Action**: Navigates to Inventory → Purchase Orders → Create PO, choosing the supplier, variants, quantity (*50 Units*), and cost (*₹2,500/unit*).
+* **System Action**: Creates a `PurchaseOrder` in `DRAFT` status.
+* **Approval Workflow**: When the manager clicks **Approve & Send**:
+  1. PO status changes to `SENT`.
+  2. The system triggers an automated email with the PO PDF attached to the supplier.
+  3. Increments the target variant's `onOrderQty` by `50` in the database.
+* **Inventory Status**: `Incoming Stock (On Order) = 50`. The stock is not yet available for sale, but is tracked as expected delivery.
+
+---
+
+### Step 8: Goods Receipt & Delivery Check-In
+When the delivery arrives from the supplier, warehouse staff verify the shipment.
+* **Warehouse Action**: Counts received units, checks for defects, and confirms matching quantities.
+* **Admin Action**: Navigates to the PO in the dashboard and clicks **Receive Delivery / Receive Items** specifying the received quantities (e.g. *50 Units*).
+
+---
+
+### Step 9: Automatic Inventory Update
+* **API Action**: Calls `POST /api/v1/inventory/purchase-orders/:id/receive`.
+* **System Action**: The inventory service updates database values:
+  * Variant `physicalQty` increases by `50` (e.g., from `4` to `54`).
+  * Variant `onOrderQty` decreases by `50` (returning to `0`).
+  * Dynamic available stock recalculates immediately: `54 - 0 = 54`.
+* **Storefront Status**: Customers can immediately purchase the restocked item.
+
+---
+
+### Step 10: Purchase Order Completion
+* **System Action**: The PO status updates from `SENT` to `RECEIVED` (or `PARTIALLY_RECEIVED` if only a portion of the ordered quantity was check-in).
+
+---
+
+### Step 11: Inventory Ledger Recording
+Every replenishment creates a permanent audit record.
+* **System Action**: Logs an `InventoryTransaction` record:
+  * `type = REPLENISHMENT`
+  * `qtyChange = +50`
+  * `previousQty = 4`
+  * `newQty = 54`
+  * `reason = "Replenishment from Purchase Order [PO Number]"`
+  * `poId = [PO ID]`
+  * `userId = [Staff User ID]`

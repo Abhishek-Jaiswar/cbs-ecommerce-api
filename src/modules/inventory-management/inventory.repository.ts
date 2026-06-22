@@ -199,7 +199,7 @@ class InventoryRepository {
       where.variantId = variantId;
     }
 
-    const [items, total] = await prisma.$transaction([
+    const [items, total] = await Promise.all([
       prisma.inventoryTransaction.findMany({
         where,
         skip,
@@ -283,7 +283,7 @@ class InventoryRepository {
 
   async findPurchaseOrders(page: number, limit: number) {
     const skip = (page - 1) * limit;
-    const [items, total] = await prisma.$transaction([
+    const [items, total] = await Promise.all([
       prisma.purchaseOrder.findMany({
         skip,
         take: limit,

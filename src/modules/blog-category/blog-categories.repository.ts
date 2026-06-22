@@ -6,7 +6,7 @@ class BlogCategoryRepository{
 
 
     async getCategories(page : number, limit : number){
-        const[items, total] = await prisma.$transaction([
+        const [items, total] = await Promise.all([
             prisma.blogCategory.findMany({
 
                 skip: (page - 1) * limit,

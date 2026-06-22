@@ -3,7 +3,7 @@ import type { TCreateBlogTag, TUpdateBlogTag } from "./blog-tags.types.js";
 
 class BlogTagRepository {
   async getBlogTags(page: number, limit: number) {
-    const [items, total] = await prisma.$transaction([
+    const [items, total] = await Promise.all([
       prisma.blogTag.findMany({
         skip: (page - 1) * limit,
         take: limit,
