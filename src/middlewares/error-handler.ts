@@ -1,4 +1,4 @@
-import type { ErrorRequestHandler, Request, Response } from "express";
+import type { ErrorRequestHandler, Request, Response, NextFunction } from "express";
 
 import { getCorrelationId } from "../utils/correlationId.js";
 import { isDevelopment } from "../config/env.config.js";
@@ -12,7 +12,8 @@ interface AppError extends Error {
 export const globalErrorHandler: ErrorRequestHandler = (
   err: AppError,
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   const statusCode = err.statusCode ?? 500;
   const message = err.message || "Internal server error";
