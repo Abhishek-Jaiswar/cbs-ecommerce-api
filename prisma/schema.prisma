@@ -366,12 +366,15 @@ model LandingPage{
   id         String         @id @default(cuid())
   title      String
   slug       String         @unique
-  description  String?      @db.text
+  description  String?      @db.Text
   imageUrl     String
   imagePublicId String 
+  sections      Json?
   isPublished   Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@map("landing_images")
 }
 
 model Cart {
