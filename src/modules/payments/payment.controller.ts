@@ -7,6 +7,8 @@ import { orderRepository } from "../orders/order.repository.js";
 import { userRepository } from "../user/user.repository.js";
 import { emailService } from "../../services/email/mail.service.js";
 import { Env } from "../../config/env.config.js";
+import { generatePdfFromHtml } from "../../services/pdf/pdf-generator.js";
+import { invoiceTemplate } from "../../services/pdf/pdf-templates/invoice-template.js";
 
 class PaymentController {
   async verifyPayment(req: Request, res: Response, next: NextFunction) {
@@ -45,9 +47,18 @@ class PaymentController {
           const orderWithDetails = await orderRepository.findOrderById(orderId);
           const user = await userRepository.findUserById(order.userId);
           if (user && orderWithDetails) {
-            await emailService.sendOrderCreatedEmail(user.email, orderWithDetails, user.name, false);
+            const invoiceHtml = invoiceTemplate(orderWithDetails, user.name);
+            const pdfBuffer = await generatePdfFromHtml(invoiceHtml);
+            const attachments = [
+              {
+                filename: `invoice-${orderWithDetails.orderNumber}.pdf`,
+                content: pdfBuffer,
+              },
+            ];
+
+            await emailService.sendOrderCreatedEmail(user.email, orderWithDetails, user.name, false, attachments);
             const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
-            await emailService.sendOrderCreatedEmail(adminEmail, orderWithDetails, user.name, true);
+            await emailService.sendOrderCreatedEmail(adminEmail, orderWithDetails, user.name, true, attachments);
           }
         } catch (err) {
           console.error("Failed to send paid order confirmation emails:", err);

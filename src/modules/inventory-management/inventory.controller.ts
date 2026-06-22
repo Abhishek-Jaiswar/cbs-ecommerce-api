@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import z from "zod";
-import { BadRequestError } from "../../utils/errors/app-error.js";
+import { BadRequestError, NotFoundError } from "../../utils/errors/app-error.js";
 import { inventoryService } from "./inventory.service.js";
+import { generatePdfFromHtml } from "../../services/pdf/pdf-generator.js";
+import { poQuoteTemplate } from "../../services/pdf/pdf-templates/po-quote-template.js";
 
 class InventoryController {
   async getInventory(req: Request, res: Response, next: NextFunction) {
@@ -447,6 +449,29 @@ class InventoryController {
         message: "Warehouse profile updated successfully",
         data: warehouse,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async downloadPurchaseOrderPdf(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      if (!id) {
+        throw new BadRequestError("Purchase Order ID is required");
+      }
+
+      const po = await inventoryService.getPurchaseOrderById(id);
+      if (!po) {
+        throw new NotFoundError("Purchase Order not found");
+      }
+
+      const html = poQuoteTemplate(po);
+      const pdfBuffer = await generatePdfFromHtml(html);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename=purchase-order-${po.poNumber}.pdf`);
+      return res.status(200).send(pdfBuffer);
     } catch (error) {
       next(error);
     }

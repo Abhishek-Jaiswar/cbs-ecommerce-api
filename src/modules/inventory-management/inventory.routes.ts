@@ -26,6 +26,7 @@ router.put("/suppliers/:id", inventoryController.updateSupplier);
 router.get("/purchase-orders", inventoryController.getPurchaseOrders);
 router.post("/purchase-orders", inventoryController.createPurchaseOrder);
 router.get("/purchase-orders/:id", inventoryController.getPurchaseOrderById);
+router.get("/purchase-orders/:id/pdf", inventoryController.downloadPurchaseOrderPdf);
 router.put("/purchase-orders/:id/status", inventoryController.updatePurchaseOrderStatus);
 router.post("/purchase-orders/:id/receive", inventoryController.receivePurchaseOrder);
 

@@ -1,6 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import { orderService } from "./order.service.js";
 import { createOrderSchema, updateOrderStatusSchema } from "./order.schema.js";
+import { generatePdfFromHtml } from "../../services/pdf/pdf-generator.js";
+import { invoiceTemplate } from "../../services/pdf/pdf-templates/invoice-template.js";
+import { shippingLabelTemplate } from "../../services/pdf/pdf-templates/shipping-label-template.js";
 
 class OrderController {
   async getOrders(req: Request, res: Response, next: NextFunction) {
@@ -144,6 +147,65 @@ class OrderController {
         success: true,
         data: order,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async downloadInvoice(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orderId = req.params.id as string;
+      const userId = req.user?.userId;
+      const userRole = req.user?.role;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const order = await orderService.findOrderById(orderId, userId, userRole === "ADMIN");
+      const html = invoiceTemplate(order, order.fullname || "Customer");
+      const pdfBuffer = await generatePdfFromHtml(html);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename=invoice-${order.orderNumber}.pdf`);
+      return res.status(200).send(pdfBuffer);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async downloadShippingLabel(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orderId = req.params.id as string;
+      const userId = req.user?.userId;
+      const userRole = req.user?.role;
+
+      if (!userId || userRole !== "ADMIN") {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden",
+        });
+      }
+
+      const order = await orderService.findOrderById(orderId, userId, true);
+      const html = shippingLabelTemplate(order);
+      const pdfBuffer = await generatePdfFromHtml(html, {
+        width: "4in",
+        height: "6in",
+        margin: {
+          top: "2mm",
+          bottom: "2mm",
+          left: "2mm",
+          right: "2mm",
+        },
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename=shipping-label-${order.orderNumber}.pdf`);
+      return res.status(200).send(pdfBuffer);
     } catch (error) {
       next(error);
     }

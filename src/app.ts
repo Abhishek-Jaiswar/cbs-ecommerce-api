@@ -50,6 +50,15 @@ export const startApp = (): Application => {
           return;
         }
 
+        // Allow any localhost or 127.0.0.1 origin in development to avoid developer port/host mismatch friction
+        if (
+          Env.NODE_ENV === "development" &&
+          (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:"))
+        ) {
+          callback(null, true);
+          return;
+        }
+
         callback(new Error(`Origin not allowed by CORS: ${origin}`));
       },
       credentials: true,

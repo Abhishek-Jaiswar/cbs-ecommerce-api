@@ -10,6 +10,8 @@ router.use(requireAuth);
 router.get("/", requireRole("ADMIN"), orderController.getOrders);
 router.get("/mine", orderController.getMyOrders);
 router.get("/:id", orderController.getOrderById);
+router.get("/:id/invoice", orderController.downloadInvoice);
+router.get("/:id/shipping-label", requireRole("ADMIN"), orderController.downloadShippingLabel);
 router.post("/", orderController.placeOrder);
 router.patch("/:id/status", requireRole("ADMIN"), orderController.updateOrderStatus);
 router.post("/:id/cancel", orderController.cancelOrder);

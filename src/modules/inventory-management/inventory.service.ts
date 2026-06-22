@@ -2,6 +2,8 @@ import { NotFoundError, BadRequestError } from "../../utils/errors/app-error.js"
 import { inventoryRepository } from "./inventory.repository.js";
 import { emailService } from "../../services/email/mail.service.js";
 import { productCache } from "../products/products.cache.js";
+import { generatePdfFromHtml } from "../../services/pdf/pdf-generator.js";
+import { poQuoteTemplate } from "../../services/pdf/pdf-templates/po-quote-template.js";
 
 class InventoryService {
   async getInventory(params: {
@@ -141,14 +143,26 @@ class InventoryService {
           if (fullPo && fullPo.supplier) {
             const recipientEmail = options?.email || fullPo.supplier.email;
             if (recipientEmail) {
-              emailService.sendPurchaseOrderEmail(
-                recipientEmail,
-                fullPo,
-                options?.subject,
-                options?.customNotes
-              ).catch((emailErr) => {
-                console.error("Failed to send purchase order email to supplier:", emailErr);
-              });
+              const poHtml = poQuoteTemplate(fullPo, options?.customNotes);
+              generatePdfFromHtml(poHtml)
+                .then((pdfBuffer) => {
+                  const attachments = [
+                    {
+                      filename: `purchase-order-${fullPo.poNumber}.pdf`,
+                      content: pdfBuffer,
+                    },
+                  ];
+                  return emailService.sendPurchaseOrderEmail(
+                    recipientEmail,
+                    fullPo,
+                    options?.subject,
+                    options?.customNotes,
+                    attachments
+                  );
+                })
+                .catch((emailErr) => {
+                  console.error("Failed to send purchase order email to supplier:", emailErr);
+                });
             }
           }
         })

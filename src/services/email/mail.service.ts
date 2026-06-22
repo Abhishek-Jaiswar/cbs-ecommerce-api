@@ -23,13 +23,14 @@ class MailService {
     });
   }
 
-  async sendEmail(to: string, subject: string, html: string) {
+  async sendEmail(to: string, subject: string, html: string, attachments?: any[]) {
     try {
       const info = await this.transporter.sendMail({
         from: `"ZenVoraa" <${Env.MAIL_USER}>`,
         to,
         subject,
         html,
+        attachments,
       });
 
       return info;
@@ -47,9 +48,9 @@ class MailService {
     return this.sendEmail(to, "Reset Your Password - ZenVoraa", resetPasswordOtpTemplate(otp));
   }
 
-  async sendOrderCreatedEmail(to: string, order: any, userName: string, isAdmin: boolean) {
+  async sendOrderCreatedEmail(to: string, order: any, userName: string, isAdmin: boolean, attachments?: any[]) {
     const subject = isAdmin ? `[New Order] ${order.orderNumber}` : `Order Confirmed - Zenvoraa`;
-    return this.sendEmail(to, subject, orderCreatedTemplate(order, userName, isAdmin));
+    return this.sendEmail(to, subject, orderCreatedTemplate(order, userName, isAdmin), attachments);
   }
 
   async sendOrderCancelledEmail(to: string, order: any, userName: string, isAdmin: boolean) {
@@ -62,9 +63,9 @@ class MailService {
     return this.sendEmail(to, subject, orderDeliveredTemplate(order, userName, isAdmin));
   }
 
-  async sendPurchaseOrderEmail(to: string, po: any, customSubject?: string | undefined, customNotes?: string | undefined) {
+  async sendPurchaseOrderEmail(to: string, po: any, customSubject?: string | undefined, customNotes?: string | undefined, attachments?: any[]) {
     const subject = customSubject || `Purchase Order ${po.poNumber} - ZenVoraa`;
-    return this.sendEmail(to, subject, purchaseOrderTemplate(po, customNotes));
+    return this.sendEmail(to, subject, purchaseOrderTemplate(po, customNotes), attachments);
   }
 }
 

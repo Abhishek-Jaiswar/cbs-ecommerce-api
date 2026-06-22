@@ -15,6 +15,8 @@ import { userRepository } from "../user/user.repository.js";
 import { emailService } from "../../services/email/mail.service.js";
 import { Env } from "../../config/env.config.js";
 import { logger } from "../../lib/winston.js";
+import { generatePdfFromHtml } from "../../services/pdf/pdf-generator.js";
+import { invoiceTemplate } from "../../services/pdf/pdf-templates/invoice-template.js";
 import type {
   TCartItem,
   TPlaceOrderInput,
@@ -266,9 +268,18 @@ class OrderService {
           const orderWithDetails = await orderRepository.findOrderById(order.id);
           const user = await userRepository.findUserById(userId);
           if (user && orderWithDetails) {
-            await emailService.sendOrderCreatedEmail(user.email, orderWithDetails, user.name, false);
+            const invoiceHtml = invoiceTemplate(orderWithDetails, user.name);
+            const pdfBuffer = await generatePdfFromHtml(invoiceHtml);
+            const attachments = [
+              {
+                filename: `invoice-${orderWithDetails.orderNumber}.pdf`,
+                content: pdfBuffer,
+              },
+            ];
+
+            await emailService.sendOrderCreatedEmail(user.email, orderWithDetails, user.name, false, attachments);
             const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
-            await emailService.sendOrderCreatedEmail(adminEmail, orderWithDetails, user.name, true);
+            await emailService.sendOrderCreatedEmail(adminEmail, orderWithDetails, user.name, true, attachments);
           }
         } catch (err) {
           logger.error("Failed to send COD order confirmation emails:", err);
