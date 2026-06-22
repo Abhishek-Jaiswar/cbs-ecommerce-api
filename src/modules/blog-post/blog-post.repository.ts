@@ -13,7 +13,7 @@ class BlogPostRepository {
     limit: number
   ) {
     const [items, total] =
-      await prisma.$transaction([
+      await Promise.all([
         prisma.blogPost.findMany({
           skip:
             (page - 1) * limit,
