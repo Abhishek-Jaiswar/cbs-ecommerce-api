@@ -29,6 +29,7 @@ import reportsRoutes from "./modules/reports/reports.routes.js";
 import blogPostRoutes from "./modules/blog-post/blog-post.route.js";
 import inventoryRoutes from "./modules/inventory-management/inventory.routes.js";
 import landingPageRoutes from "./modules/landing-page/landing.routes.js";
+import uploadRoutes from "./modules/upload/upload.routes.js";
 import os from "os";
 
 export const startApp = (): Application => {
@@ -70,6 +71,7 @@ export const startApp = (): Application => {
   app.use(cookieParser());
   app.use(express.urlencoded({ extended: true }));
   app.disable("x-powered-by");
+  app.use("/api/v1/upload",uploadRoutes);
   app.use("/public", express.static("public"));
   app.use(`/api/${Env.API_VERSION}/public`, express.static("public"));
 

@@ -1,17 +1,16 @@
 import type {
- Request,
- Response,
- NextFunction,
+  Request,
+  Response,
+  NextFunction,
 } from "express";
 
 import {
- landingPageService,
+  landingPageService,
 } from "./landing.service.js";
 
 class LandingPageController {
 
-  create =
-  async (
+  create = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -20,14 +19,11 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .create(
-        req.body
-      );
+        await landingPageService.create(
+          req.body
+        );
 
-      return res
-      .status(201)
-      .json({
+      return res.status(201).json({
         success: true,
         message:
           "Landing page created successfully",
@@ -40,9 +36,33 @@ class LandingPageController {
 
   };
 
-  getAll =
-  async (
-    _req: Request,
+  getAll = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const result =
+      await landingPageService.getAll();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        items: result,
+        total: result.length,
+        page: 1,
+        limit: result.length,
+        totalPages: 1,
+      },
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+  getById = async (
+    req: Request,
     res: Response,
     next: NextFunction
   ) => {
@@ -50,12 +70,11 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .getAll();
+        await landingPageService.getById(
+          String(req.params.id)
+        );
 
-      return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         data: result,
       });
@@ -66,8 +85,7 @@ class LandingPageController {
 
   };
 
-  getById =
-  async (
+  getBySlug = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -76,14 +94,11 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .getById(
-        req.params.id
-      );
+        await landingPageService.getBySlug(
+          String(req.params.slug)
+        );
 
-      return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         data: result,
       });
@@ -94,8 +109,7 @@ class LandingPageController {
 
   };
 
-  getBySlug =
-  async (
+  update = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -104,43 +118,12 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .getBySlug(
-        req.params.slug
-      );
+        await landingPageService.update(
+          String(req.params.id),
+          req.body
+        );
 
-      return res
-      .status(200)
-      .json({
-        success: true,
-        data: result,
-      });
-
-    } catch (error) {
-      next(error);
-    }
-
-  };
-
-  update =
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-
-    try {
-
-      const result =
-      await landingPageService
-      .update(
-        req.params.id,
-        req.body
-      );
-
-      return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         message:
           "Landing page updated successfully",
@@ -153,8 +136,7 @@ class LandingPageController {
 
   };
 
-  delete =
-  async (
+  delete = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -163,14 +145,11 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .delete(
-        req.params.id
-      );
+        await landingPageService.delete(
+          String(req.params.id)
+        );
 
-      return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         message:
           "Landing page deleted successfully",
@@ -183,8 +162,7 @@ class LandingPageController {
 
   };
 
-  publish =
-  async (
+  publish = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -193,14 +171,11 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .publish(
-        req.params.id
-      );
+        await landingPageService.publish(
+          String(req.params.id)
+        );
 
-      return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         message:
           "Landing page published",
@@ -213,8 +188,7 @@ class LandingPageController {
 
   };
 
-  unpublish =
-  async (
+  unpublish = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -223,14 +197,11 @@ class LandingPageController {
     try {
 
       const result =
-      await landingPageService
-      .unpublish(
-        req.params.id
-      );
+        await landingPageService.unpublish(
+          String(req.params.id)
+        );
 
-      return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         message:
           "Landing page unpublished",

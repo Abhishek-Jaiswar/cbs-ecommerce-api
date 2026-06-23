@@ -3,11 +3,13 @@ import {
   updateLandingPageSchema,
 } from "./landing.schema.js";
 
-import { LandingPageRepository }
-from "./landing.repository.js";
+import {
+  LandingPageRepository,
+} from "./landing.repository.js";
 
-import { landingPageCache }
-from "./landing.cache.js";
+import {
+  landingPageCache,
+} from "./landing.cache.js";
 
 class LandingPageService {
 
@@ -15,16 +17,41 @@ class LandingPageService {
     body: unknown
   ) {
 
-    const data =
-    createLandingPageSchema
-    .parse(body);
+    const parsed =
+      createLandingPageSchema
+      .parse(body);
+
+    const data = {
+
+      title:
+        parsed.title,
+
+      slug:
+        parsed.slug,
+
+      description:
+        parsed.description ?? null,
+
+      imageUrl:
+        parsed.imageUrl,
+
+      imagePublicId:
+        parsed.imagePublicId,
+
+      sections:
+        parsed.sections ?? null,
+
+      isPublished:
+        parsed.isPublished,
+
+    };
 
     const result =
-    await LandingPageRepository
-    .create(data);
+      await LandingPageRepository
+      .create(data);
 
     await landingPageCache
-    .invalidateLandingPages();
+      .invalidateLandingPages();
 
     return result;
 
@@ -33,16 +60,11 @@ class LandingPageService {
   async getAll() {
 
     return landingPageCache
-    .getOrSetLandingPages(
-
-      async () => {
-
-        return LandingPageRepository
-        .findAll();
-
-      }
-
-    );
+      .getOrSetLandingPages(
+        () =>
+          LandingPageRepository
+          .findAll()
+      );
 
   }
 
@@ -51,18 +73,15 @@ class LandingPageService {
   ) {
 
     return landingPageCache
-    .getOrSetLandingDetails(
+      .getOrSetLandingDetails(
 
-      id,
+        id,
 
-      async () => {
+        () =>
+          LandingPageRepository
+          .findById(id)
 
-        return LandingPageRepository
-        .findById(id);
-
-      }
-
-    );
+      );
 
   }
 
@@ -71,31 +90,69 @@ class LandingPageService {
   ) {
 
     return LandingPageRepository
-    .findByslug(slug);
+      .findByslug(slug);
 
   }
 
   async update(
     id: string,
-
     body: unknown
   ) {
 
-    const data =
-    updateLandingPageSchema
-    .parse(body);
+    const parsed =
+      updateLandingPageSchema
+      .parse(body);
+
+    const data = {
+
+      ...(parsed.title !== undefined && {
+        title:
+        parsed.title,
+      }),
+
+      ...(parsed.slug !== undefined && {
+        slug:
+        parsed.slug,
+      }),
+
+      ...(parsed.description !== undefined && {
+        description:
+        parsed.description,
+      }),
+
+      ...(parsed.imageUrl !== undefined && {
+        imageUrl:
+        parsed.imageUrl,
+      }),
+
+      ...(parsed.imagePublicId !== undefined && {
+        imagePublicId:
+        parsed.imagePublicId,
+      }),
+
+      ...(parsed.sections !== undefined && {
+        sections:
+        parsed.sections,
+      }),
+
+      ...(parsed.isPublished !== undefined && {
+        isPublished:
+        parsed.isPublished,
+      }),
+
+    };
 
     const result =
-    await LandingPageRepository
-    .update(
-      id,
-      data
-    );
+      await LandingPageRepository
+      .update(
+        id,
+        data
+      );
 
     await landingPageCache
-    .invalidateLanding(
-      id
-    );
+      .invalidateLanding(
+        id
+      );
 
     return result;
 
@@ -106,12 +163,12 @@ class LandingPageService {
   ) {
 
     await LandingPageRepository
-    .remove(id);
+      .remove(id);
 
     await landingPageCache
-    .invalidateLanding(
-      id
-    );
+      .invalidateLanding(
+        id
+      );
 
     return {
       success: true,
@@ -124,13 +181,11 @@ class LandingPageService {
   ) {
 
     const result =
-    await LandingPageRepository
-    .publish(id);
+      await LandingPageRepository
+      .publish(id);
 
     await landingPageCache
-    .invalidateLanding(
-      id
-    );
+      .invalidateLanding(id);
 
     return result;
 
@@ -141,13 +196,11 @@ class LandingPageService {
   ) {
 
     const result =
-    await LandingPageRepository
-    .publish(id);
+      await LandingPageRepository
+      .publish(id);
 
     await landingPageCache
-    .invalidateLanding(
-      id
-    );
+      .invalidateLanding(id);
 
     return result;
 
