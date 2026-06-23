@@ -1,6 +1,7 @@
 import type { Prisma } from "../../generated/prisma/client.js";
 import type { OrderStatus } from "../../generated/prisma/enums.js";
 import { RazorpayService } from "../payments/razorpay.service.js";
+import { prisma } from "../../lib/prisma.js";
 import { TAX } from "../../utils/constants.js";
 import { BadRequestError, NotFoundError } from "../../utils/errors/app-error.js";
 import { addressRepository } from "../address/address.repository.js";
@@ -26,12 +27,20 @@ import crypto from "crypto";
 
 class OrderService {
   async findOrders(page: number, limit: number) {
+    this.autoExpirePendingOrders().catch((err) =>
+      logger.error("Async auto-expire failed in findOrders:", err)
+    );
+
     return await orderCache.geOrSetOrderLists(page, limit, undefined, () =>
       orderRepository.findOrders(page, limit)
     );
   }
 
   async findUserOrdersByUserId(userId: string, page: number, limit: number) {
+    this.autoExpirePendingOrders().catch((err) =>
+      logger.error("Async auto-expire failed in findUserOrdersByUserId:", err)
+    );
+
     return await orderCache.geOrSetOrderLists(page, limit, userId, () =>
       orderRepository.findUserOrderByUserId(userId, page, limit)
     );
@@ -134,6 +143,10 @@ class OrderService {
     return discountAmount;
   }
   async placeOrder(userId: string, payload: Omit<TPlaceOrderInput, "tax" | "shippingAmount">) {
+    this.autoExpirePendingOrders().catch((err) =>
+      logger.error("Async auto-expire failed in placeOrder:", err)
+    );
+
     // resolve address
     const address = await this.validateOrCreateAddress(userId, payload);
 
@@ -310,6 +323,70 @@ class OrderService {
     throw new BadRequestError("Unsupported payment provider");
   }
 
+  async autoExpirePendingOrders() {
+    try {
+      const expiryTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
+      
+      const ordersToExpire = await prisma.order.findMany({
+        where: {
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          createdAt: {
+            lt: expiryTime,
+          },
+          payments: {
+            some: {
+              provider: "RAZORPAY",
+            },
+          },
+        },
+        include: {
+          orderItems: true,
+        },
+      });
+
+      if (ordersToExpire.length === 0) {
+        return;
+      }
+
+      logger.info(`Found ${ordersToExpire.length} expired pending Razorpay orders. Expiring them now...`);
+
+      for (const order of ordersToExpire) {
+        try {
+          await orderRepository.cancelOrder(
+            order.id,
+            order.orderItems.map((item) => ({
+              variantId: item.variantId,
+              quantity: item.quantity,
+            })),
+            "FAILED"
+          );
+          
+          await prisma.payment.updateMany({
+            where: {
+              orderId: order.id,
+              status: "PENDING",
+            },
+            data: {
+              status: "FAILED",
+              failureMessage: "Payment window timed out (auto-expired)",
+              failedAt: new Date(),
+            },
+          });
+
+          await orderCache.invalidateOrders(order.id);
+          logger.info(`Auto-expired order ${order.orderNumber}`);
+        } catch (err) {
+          logger.error(`Failed to auto-expire order ${order.orderNumber}:`, err);
+        }
+      }
+      
+      await orderCache.invalidateOrderLists();
+    } catch (error) {
+      logger.error("Error in autoExpirePendingOrders:", error);
+    }
+  }
+
   async updateOrderStatus(
     orderId: string,
     payload: { status: OrderStatus; trackingNumber?: string | undefined }
@@ -319,8 +396,30 @@ class OrderService {
       throw new NotFoundError("Order not found");
     }
 
+    if (order.status === payload.status) {
+      return order;
+    }
+
+    // Terminal status check
+    const terminalStatuses: OrderStatus[] = ["CANCELLED", "DELIVERED", "FAILED", "RETURNED"];
+    if (terminalStatuses.includes(order.status)) {
+      throw new BadRequestError(`Cannot change status of a terminal order (current status: ${order.status}).`);
+    }
+
     if (payload.status === "DELIVERED" && order.status !== "SHIPPED") {
       throw new BadRequestError("Cannot mark order as DELIVERED unless it has first been marked as SHIPPED.");
+    }
+
+    // Unpaid Razorpay shipment check
+    const isRazorpay = order.payments?.some((p) => p.provider === "RAZORPAY") ?? false;
+    const isPaid = order.paymentStatus === "PAID";
+    if (isRazorpay && !isPaid) {
+      const allowedStatusUpdates: OrderStatus[] = ["CANCELLED", "FAILED", "PENDING"];
+      if (!allowedStatusUpdates.includes(payload.status)) {
+        throw new BadRequestError(
+          `Cannot update status of Razorpay order ${order.orderNumber} to ${payload.status} because payment is still PENDING or FAILED.`
+        );
+      }
     }
 
     const updateData: Prisma.OrderUpdateInput = {
@@ -341,7 +440,16 @@ class OrderService {
     }
 
     let updatedOrder;
-    if (payload.status === "SHIPPED") {
+    if (payload.status === "CANCELLED" || payload.status === "FAILED") {
+      updatedOrder = await orderRepository.cancelOrder(
+        orderId,
+        order.orderItems.map((item) => ({
+          variantId: item.variantId,
+          quantity: item.quantity,
+        })),
+        payload.status
+      );
+    } else if (payload.status === "SHIPPED") {
       updatedOrder = await orderRepository.shipOrder(orderId, updateData);
     } else {
       updatedOrder = await orderRepository.updateOrder(orderId, updateData);
@@ -349,7 +457,7 @@ class OrderService {
     await orderCache.invalidateOrders(orderId);
 
     // Send emails based on the new status
-    if (payload.status === "DELIVERED" || payload.status === "CANCELLED") {
+    if (payload.status === "DELIVERED" || payload.status === "CANCELLED" || payload.status === "FAILED") {
       (async () => {
         try {
           const orderWithDetails = await orderRepository.findOrderById(orderId);
@@ -360,6 +468,10 @@ class OrderService {
               const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
               await emailService.sendOrderDeliveredEmail(adminEmail, orderWithDetails, user.name, true);
             } else if (payload.status === "CANCELLED") {
+              await emailService.sendOrderCancelledEmail(user.email, orderWithDetails, user.name, false);
+              const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
+              await emailService.sendOrderCancelledEmail(adminEmail, orderWithDetails, user.name, true);
+            } else if (payload.status === "FAILED") {
               await emailService.sendOrderCancelledEmail(user.email, orderWithDetails, user.name, false);
               const adminEmail = Env.ADMIN_NOTIFICATION_EMAIL || Env.MAIL_USER;
               await emailService.sendOrderCancelledEmail(adminEmail, orderWithDetails, user.name, true);
@@ -397,18 +509,13 @@ class OrderService {
       throw new BadRequestError(`Cannot cancel order in status ${order.status}`);
     }
 
-    // Determine if stock was decremented and needs to be released
-    const isCod = order.payments?.some((p) => p.provider === "COD") ?? false;
-    const isPaid = order.paymentStatus === "PAID";
-    const needsStockRelease = isCod || isPaid;
-
     const updatedOrder = await orderRepository.cancelOrder(
       orderId,
-      needsStockRelease,
       order.orderItems.map((item) => ({
         variantId: item.variantId,
         quantity: item.quantity,
-      }))
+      })),
+      "CANCELLED"
     );
 
     await orderCache.invalidateOrders(orderId);

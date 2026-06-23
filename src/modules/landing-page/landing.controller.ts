@@ -78,7 +78,7 @@ class LandingPageController {
       const result =
       await landingPageService
       .getById(
-        req.params.id
+        req.params.id as string
       );
 
       return res
@@ -106,7 +106,7 @@ class LandingPageController {
       const result =
       await landingPageService
       .getBySlug(
-        req.params.slug
+        req.params.slug as string
       );
 
       return res
@@ -134,7 +134,7 @@ class LandingPageController {
       const result =
       await landingPageService
       .update(
-        req.params.id,
+        req.params.id as string,
         req.body
       );
 
@@ -165,7 +165,7 @@ class LandingPageController {
       const result =
       await landingPageService
       .delete(
-        req.params.id
+        req.params.id as string
       );
 
       return res
@@ -195,7 +195,7 @@ class LandingPageController {
       const result =
       await landingPageService
       .publish(
-        req.params.id
+        req.params.id as string
       );
 
       return res
@@ -225,7 +225,7 @@ class LandingPageController {
       const result =
       await landingPageService
       .unpublish(
-        req.params.id
+        req.params.id as string
       );
 
       return res

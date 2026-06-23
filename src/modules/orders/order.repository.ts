@@ -32,7 +32,15 @@ class OrderRepository {
       },
 
       include: {
-        orderItems: true,
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                slug: true,
+              },
+            },
+          },
+        },
         payments: true,
       },
     });
@@ -50,7 +58,15 @@ class OrderRepository {
           createdAt: "desc",
         },
         include: {
-          orderItems: true,
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  slug: true,
+                },
+              },
+            },
+          },
         },
       }),
 
@@ -228,8 +244,8 @@ class OrderRepository {
 
   async cancelOrder(
     orderId: string,
-    needsStockRelease: boolean,
-    orderItems: { variantId: string | null; quantity: number }[]
+    orderItems: { variantId: string | null; quantity: number }[],
+    targetStatus: "CANCELLED" | "FAILED" = "CANCELLED"
   ) {
     return prisma.$transaction(async (tx) => {
       const orderBefore = await tx.order.findUnique({
@@ -241,67 +257,69 @@ class OrderRepository {
         throw new Error("Order not found");
       }
 
-      const isAlreadyShipped = orderBefore.status === "SHIPPED";
+      if (orderBefore.status === "CANCELLED" || orderBefore.status === "FAILED") {
+        return orderBefore as any;
+      }
+
+      const isAlreadyShipped = orderBefore.status === "SHIPPED" || orderBefore.status === "DELIVERED";
 
       const order = await tx.order.update({
         where: { id: orderId },
         data: {
-          status: "CANCELLED",
-          cancelledAt: new Date(),
+          status: targetStatus,
+          ...(targetStatus === "CANCELLED" ? { cancelledAt: new Date() } : {}),
         },
       });
 
-      if (needsStockRelease) {
-        for (const item of orderItems) {
-          if (item.variantId) {
-            const variant = await tx.productVariant.findUnique({
-              where: { id: item.variantId },
-              select: { physicalQty: true, committedQty: true },
-            });
+      for (const item of orderItems) {
+        if (item.variantId) {
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { physicalQty: true, committedQty: true },
+          });
 
-            if (variant) {
-              const previousAvailable = variant.physicalQty - variant.committedQty;
-              
-              let updated;
-              if (isAlreadyShipped) {
-                // If already shipped, physical stock was decremented and committedQty was released.
-                // Restock physicalQty. Do not touch committedQty.
-                updated = await tx.productVariant.update({
-                  where: { id: item.variantId },
-                  data: {
-                    physicalQty: {
-                      increment: item.quantity,
-                    },
-                  },
-                });
-              } else {
-                // If not shipped, release committedQty reservation.
-                updated = await tx.productVariant.update({
-                  where: { id: item.variantId },
-                  data: {
-                    committedQty: {
-                      decrement: item.quantity,
-                    },
-                  },
-                });
-              }
-              
-              const newAvailable = updated.physicalQty - updated.committedQty;
-
-              await tx.inventoryTransaction.create({
+          if (variant) {
+            const previousAvailable = variant.physicalQty - variant.committedQty;
+            
+            let updated;
+            if (isAlreadyShipped) {
+              // If already shipped, physical stock was decremented and committedQty was released.
+              // Restock physicalQty. Do not touch committedQty.
+              updated = await tx.productVariant.update({
+                where: { id: item.variantId },
                 data: {
-                  variantId: item.variantId,
-                  type: "ORDER_CANCELLED",
-                  qtyChange: item.quantity,
-                  previousQty: previousAvailable,
-                  newQty: newAvailable,
-                  reason: isAlreadyShipped
-                    ? `Stock returned & restocked from cancelled shipped order ${order.orderNumber}`
-                    : `Stock reservation released from cancelled order ${order.orderNumber}`,
-                  orderId: order.id,
+                  physicalQty: {
+                    increment: item.quantity,
+                  },
+                },
+              });
+            } else {
+              // If not shipped, release committedQty reservation.
+              updated = await tx.productVariant.update({
+                where: { id: item.variantId },
+                data: {
+                  committedQty: {
+                    decrement: item.quantity,
+                  },
                 },
               });
             }
+            
+            const newAvailable = updated.physicalQty - updated.committedQty;
+
+            await tx.inventoryTransaction.create({
+              data: {
+                variantId: item.variantId,
+                type: "ORDER_CANCELLED",
+                qtyChange: item.quantity,
+                previousQty: previousAvailable,
+                newQty: newAvailable,
+                reason: isAlreadyShipped
+                  ? `Stock returned & restocked from cancelled shipped/delivered order ${order.orderNumber}`
+                  : `Stock reservation released from cancelled/failed order ${order.orderNumber}`,
+                orderId: order.id,
+              },
+            });
           }
         }
       }

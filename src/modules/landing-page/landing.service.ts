@@ -21,7 +21,15 @@ class LandingPageService {
 
     const result =
     await LandingPageRepository
-    .create(data);
+    .create({
+      title: data.title,
+      slug: data.slug,
+      imageUrl: data.imageUrl,
+      imagePublicId: data.imagePublicId,
+      isPublished: data.isPublished,
+      description: data.description ?? null,
+      sections: data.sections,
+    });
 
     await landingPageCache
     .invalidateLandingPages();
@@ -85,11 +93,22 @@ class LandingPageService {
     updateLandingPageSchema
     .parse(body);
 
+    const updateData: any = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.slug !== undefined) updateData.slug = data.slug;
+    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+    if (data.imagePublicId !== undefined) updateData.imagePublicId = data.imagePublicId;
+    if (data.isPublished !== undefined) updateData.isPublished = data.isPublished;
+    if (data.sections !== undefined) updateData.sections = data.sections;
+    if (data.description !== undefined) {
+      updateData.description = data.description ?? null;
+    }
+
     const result =
     await LandingPageRepository
     .update(
       id,
-      data
+      updateData
     );
 
     await landingPageCache
