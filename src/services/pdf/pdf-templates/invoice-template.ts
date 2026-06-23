@@ -2,6 +2,8 @@
  * Generates the HTML string for the customer invoice.
  */
 export function invoiceTemplate(order: any, userName: string): string {
+  const paymentMethod = order.payments?.[0]?.method || "UNKNOWN";
+
   const itemsHtml = order.orderItems
     .map((item: any) => {
       const price = parseFloat(String(item.unitPrice)).toFixed(2);
@@ -197,7 +199,7 @@ export function invoiceTemplate(order: any, userName: string): string {
               <div class="invoice-title">Tax Invoice</div>
               <div><strong>Invoice No:</strong> ${order.orderNumber}</div>
               <div><strong>Date:</strong> ${formattedDate}</div>
-              <div><strong>Payment Method:</strong> ${order.paymentMethod} (${order.paymentStatus})</div>
+              <div><strong>Payment Method:</strong> ${paymentMethod} (${order.paymentStatus})</div>
             </td>
           </tr>
         </table>

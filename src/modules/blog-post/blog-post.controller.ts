@@ -13,6 +13,9 @@ import {
   blogPostService,
 } from "./blog-post.service.js";
 
+import { uploadService } from "../../services/storage/upload.service.js";
+import { prisma } from "../../lib/prisma.js";
+
 import {
   BadRequestError,
 } from "../../utils/errors/app-error.js";
@@ -138,6 +141,45 @@ class BlogPostController {
     next: NextFunction
   ) {
     try {
+      if (req.file) {
+        const storageAsset = await uploadService.upload(req.file, "blogs");
+        req.body.image = storageAsset.url;
+        req.body.storageKey = storageAsset.storageKey;
+      } else if (req.body.status === "DRAFT") {
+        req.body.image = req.body.image || "https://zenvoraa.in/logo.png";
+        req.body.storageKey = req.body.storageKey || "blogs/posts/draft-cover";
+      }
+
+      if (!req.body.categoryId && req.body.status === "DRAFT") {
+        const defaultCategory = await prisma.blogCategory.findFirst({
+          where: { isActive: true }
+        });
+        if (defaultCategory) {
+          req.body.categoryId = defaultCategory.id;
+        }
+      }
+
+      if (req.body.status === "DRAFT") {
+        req.body.altText = req.body.altText || req.body.title || "Draft Post";
+        if (req.body.altText.length < 3) {
+          req.body.altText = req.body.altText + " Alt";
+        }
+      }
+
+      // Preprocess tagIds if sent as JSON string from FormData
+      if (typeof req.body.tagIds === "string") {
+        try {
+          req.body.tagIds = JSON.parse(req.body.tagIds);
+        } catch {
+          req.body.tagIds = [];
+        }
+      }
+
+      // Preprocess isFeatured
+      if (typeof req.body.isFeatured === "string") {
+        req.body.isFeatured = req.body.isFeatured === "true";
+      }
+
       const validation =
         createBlogPostBodySchema.safeParse(
           req.body
@@ -198,6 +240,38 @@ class BlogPostController {
         throw new BadRequestError(
           "Post ID required"
         );
+      }
+
+      // Preprocess tagIds if sent as JSON string from FormData
+      if (typeof req.body.tagIds === "string") {
+        try {
+          req.body.tagIds = JSON.parse(req.body.tagIds);
+        } catch {
+          req.body.tagIds = [];
+        }
+      }
+
+      // Preprocess isFeatured
+      if (typeof req.body.isFeatured === "string") {
+        req.body.isFeatured = req.body.isFeatured === "true";
+      }
+
+      if (req.file) {
+        const storageAsset = await uploadService.upload(req.file, "blogs");
+        req.body.image = storageAsset.url;
+        req.body.storageKey = storageAsset.storageKey;
+
+        // delete old cover image
+        try {
+          const existingPost = await blogPostService.getPostById(id);
+          if (existingPost?.storageKey && existingPost.storageKey !== "blogs/posts/draft-cover") {
+            await uploadService.delete(existingPost.storageKey).catch((err) => {
+              console.error("Failed to delete old storage key:", err);
+            });
+          }
+        } catch (err) {
+          console.error("Failed to fetch existing post during image swap:", err);
+        }
       }
 
       const validation =

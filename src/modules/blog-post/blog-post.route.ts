@@ -14,6 +14,10 @@ import {
   requireRole,
 } from "../../middlewares/require-role.js";
 
+import {
+  upload,
+} from "../../middlewares/multer.middleware.js";
+
 const router: Router =
   express.Router();
 
@@ -42,26 +46,18 @@ router.get(
 
 router.post(
   "/",
-
   requireAuth,
-
-  requireRole(
-    "ADMIN"
-  ),
-
+  requireRole("ADMIN"),
+  upload.single("file"),
   blogPostController.createPost
 );
 
 
 router.put(
   "/:id",
-
   requireAuth,
-
-  requireRole(
-    "ADMIN"
-  ),
-
+  requireRole("ADMIN"),
+  upload.single("file"),
   blogPostController.updatePost
 );
 

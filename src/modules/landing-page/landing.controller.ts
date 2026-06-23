@@ -94,9 +94,16 @@ class LandingPageController {
     try {
 
       const result =
+<<<<<<< HEAD
         await landingPageService.getBySlug(
           String(req.params.slug)
         );
+=======
+      await landingPageService
+      .getById(
+        req.params.id as string
+      );
+>>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
 
       return res.status(200).json({
         success: true,
@@ -118,12 +125,52 @@ class LandingPageController {
     try {
 
       const result =
+<<<<<<< HEAD
         await landingPageService.update(
           String(req.params.id),
           req.body
         );
 
       return res.status(200).json({
+=======
+      await landingPageService
+      .getBySlug(
+        req.params.slug as string
+      );
+
+      return res
+      .status(200)
+      .json({
+        success: true,
+        data: result,
+      });
+
+    } catch (error) {
+      next(error);
+    }
+
+  };
+
+  update =
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+
+    try {
+
+      const result =
+      await landingPageService
+      .update(
+        req.params.id as string,
+        req.body
+      );
+
+      return res
+      .status(200)
+      .json({
+>>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
         success: true,
         message:
           "Landing page updated successfully",
@@ -145,9 +192,16 @@ class LandingPageController {
     try {
 
       const result =
+<<<<<<< HEAD
         await landingPageService.delete(
           String(req.params.id)
         );
+=======
+      await landingPageService
+      .delete(
+        req.params.id as string
+      );
+>>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
 
       return res.status(200).json({
         success: true,
@@ -171,9 +225,16 @@ class LandingPageController {
     try {
 
       const result =
+<<<<<<< HEAD
         await landingPageService.publish(
           String(req.params.id)
         );
+=======
+      await landingPageService
+      .publish(
+        req.params.id as string
+      );
+>>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
 
       return res.status(200).json({
         success: true,
@@ -197,9 +258,16 @@ class LandingPageController {
     try {
 
       const result =
+<<<<<<< HEAD
         await landingPageService.unpublish(
           String(req.params.id)
         );
+=======
+      await landingPageService
+      .unpublish(
+        req.params.id as string
+      );
+>>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
 
       return res.status(200).json({
         success: true,
