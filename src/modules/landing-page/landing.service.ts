@@ -1,244 +1,178 @@
-import {
-  createLandingPageSchema,
-  updateLandingPageSchema,
-} from "./landing.schema.js";
-
-import {
-  LandingPageRepository,
-} from "./landing.repository.js";
-
-import {
-  landingPageCache,
-} from "./landing.cache.js";
+import { createLandingPageSchema, updateLandingPageSchema } from "./landing.schema.js";
+import { LandingPageRepository } from "./landing.repository.js";
+import { landingPageCache } from "./landing.cache.js";
+import { NotFoundError, ConflictError } from "../../utils/errors/app-error.js";
+import { uploadService } from "../../services/storage/upload.service.js";
 
 class LandingPageService {
+  async create(body: unknown) {
+    const parsed = createLandingPageSchema.parse(body);
 
-  async create(
-    body: unknown
-  ) {
-
-    const parsed =
-      createLandingPageSchema
-      .parse(body);
+    // Slug unique validation
+    const existing = await LandingPageRepository.findByslug(parsed.slug);
+    if (existing) {
+      throw new ConflictError("Landing page slug already exists.");
+    }
 
     const data = {
+      title: parsed.title,
 
-      title:
-        parsed.title,
+      slug: parsed.slug,
 
-      slug:
-        parsed.slug,
+      description: parsed.description ?? null,
 
-      description:
-        parsed.description ?? null,
+      imageUrl: parsed.imageUrl || "",
 
-      imageUrl:
-        parsed.imageUrl,
+      imagePublicId: parsed.imagePublicId || "",
 
-      imagePublicId:
-        parsed.imagePublicId,
+      sections: parsed.sections ?? null,
 
-      sections:
-        parsed.sections ?? null,
-
-      isPublished:
-        parsed.isPublished,
-
+      isPublished: parsed.isPublished,
     };
 
-    const result =
-<<<<<<< HEAD
-      await LandingPageRepository
-      .create(data);
-=======
-    await LandingPageRepository
-    .create({
-      title: data.title,
-      slug: data.slug,
-      imageUrl: data.imageUrl,
-      imagePublicId: data.imagePublicId,
-      isPublished: data.isPublished,
-      description: data.description ?? null,
-      sections: data.sections,
-    });
->>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
+    const result = await LandingPageRepository.create(data);
 
-    await landingPageCache
-      .invalidateLandingPages();
+    await landingPageCache.invalidateLandingPages();
 
     return result;
-
   }
 
   async getAll() {
-
-    return landingPageCache
-      .getOrSetLandingPages(
-        () =>
-          LandingPageRepository
-          .findAll()
-      );
-
+    return landingPageCache.getOrSetLandingPages(() => LandingPageRepository.findAll());
   }
 
-  async getById(
-    id: string
-  ) {
+  async getById(id: string) {
+    const landing = await landingPageCache.getOrSetLandingDetails(
+      id,
 
-    return landingPageCache
-      .getOrSetLandingDetails(
+      () => LandingPageRepository.findById(id)
+    );
 
-        id,
+    if (!landing) {
+      throw new NotFoundError("Landing page not found.");
+    }
 
-        () =>
-          LandingPageRepository
-          .findById(id)
-
-      );
-
+    return landing;
   }
 
-  async getBySlug(
-    slug: string
-  ) {
+  async getBySlug(slug: string) {
+    const landing = await LandingPageRepository.findByslug(slug);
 
-    return LandingPageRepository
-      .findByslug(slug);
+    if (!landing) {
+      throw new NotFoundError("Landing page not found.");
+    }
 
+    return landing;
   }
 
-  async update(
-    id: string,
-    body: unknown
-  ) {
+  async update(id: string, body: unknown) {
+    const existingPage = await LandingPageRepository.findById(id);
+    if (!existingPage) {
+      throw new NotFoundError("Landing page not found.");
+    }
 
-    const parsed =
-      updateLandingPageSchema
-      .parse(body);
+    const parsed = updateLandingPageSchema.parse(body);
+
+    // Slug uniqueness check
+    if (parsed.slug && parsed.slug !== existingPage.slug) {
+      const existingSlug = await LandingPageRepository.findByslug(parsed.slug);
+      if (existingSlug) {
+        throw new ConflictError("Landing page slug already exists.");
+      }
+    }
 
     const data = {
-
       ...(parsed.title !== undefined && {
-        title:
-        parsed.title,
+        title: parsed.title,
       }),
 
       ...(parsed.slug !== undefined && {
-        slug:
-        parsed.slug,
+        slug: parsed.slug,
       }),
 
       ...(parsed.description !== undefined && {
-        description:
-        parsed.description,
+        description: parsed.description,
       }),
 
       ...(parsed.imageUrl !== undefined && {
-        imageUrl:
-        parsed.imageUrl,
+        imageUrl: parsed.imageUrl,
       }),
 
       ...(parsed.imagePublicId !== undefined && {
-        imagePublicId:
-        parsed.imagePublicId,
+        imagePublicId: parsed.imagePublicId,
       }),
 
       ...(parsed.sections !== undefined && {
-        sections:
-        parsed.sections,
+        sections: parsed.sections,
       }),
 
       ...(parsed.isPublished !== undefined && {
-        isPublished:
-        parsed.isPublished,
+        isPublished: parsed.isPublished,
       }),
-
     };
 
-    const updateData: any = {};
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.slug !== undefined) updateData.slug = data.slug;
-    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
-    if (data.imagePublicId !== undefined) updateData.imagePublicId = data.imagePublicId;
-    if (data.isPublished !== undefined) updateData.isPublished = data.isPublished;
-    if (data.sections !== undefined) updateData.sections = data.sections;
-    if (data.description !== undefined) {
-      updateData.description = data.description ?? null;
+    // Clean up old image if new image is provided
+    if (parsed.imagePublicId && parsed.imagePublicId !== existingPage.imagePublicId) {
+      if (existingPage.imagePublicId) {
+        await uploadService.delete(existingPage.imagePublicId).catch((err) => {
+          console.error("Failed to delete orphaned landing page image:", err);
+        });
+      }
     }
 
-    const result =
-<<<<<<< HEAD
-      await LandingPageRepository
-      .update(
-        id,
-        data
-      );
-=======
-    await LandingPageRepository
-    .update(
-      id,
-      updateData
-    );
->>>>>>> ef7c325a4656aa08b21fac84776a4f931721c13b
+    const result = await LandingPageRepository.update(id, data);
 
-    await landingPageCache
-      .invalidateLanding(
-        id
-      );
+    await landingPageCache.invalidateLanding(id);
 
     return result;
-
   }
 
-  async delete(
-    id: string
-  ) {
+  async delete(id: string) {
+    const existingPage = await LandingPageRepository.findById(id);
+    if (!existingPage) {
+      throw new NotFoundError("Landing page not found.");
+    }
 
-    await LandingPageRepository
-      .remove(id);
+    await LandingPageRepository.delete(id);
 
-    await landingPageCache
-      .invalidateLanding(
-        id
-      );
+    if (existingPage.imagePublicId) {
+      await uploadService.delete(existingPage.imagePublicId).catch((err) => {
+        console.error("Failed to delete orphaned landing page image:", err);
+      });
+    }
+
+    await landingPageCache.invalidateLanding(id);
 
     return {
       success: true,
     };
-
   }
 
-  async publish(
-    id: string
-  ) {
+  async publish(id: string) {
+    const existingPage = await LandingPageRepository.findById(id);
+    if (!existingPage) {
+      throw new NotFoundError("Landing page not found.");
+    }
 
-    const result =
-      await LandingPageRepository
-      .publish(id);
+    const result = await LandingPageRepository.publish(id);
 
-    await landingPageCache
-      .invalidateLanding(id);
+    await landingPageCache.invalidateLanding(id);
 
     return result;
-
   }
 
-  async unpublish(
-    id: string
-  ) {
+  async unpublish(id: string) {
+    const existingPage = await LandingPageRepository.findById(id);
+    if (!existingPage) {
+      throw new NotFoundError("Landing page not found.");
+    }
 
-    const result =
-      await LandingPageRepository
-      .publish(id);
+    const result = await LandingPageRepository.unpublish(id);
 
-    await landingPageCache
-      .invalidateLanding(id);
+    await landingPageCache.invalidateLanding(id);
 
     return result;
-
   }
-
 }
 
-export const landingPageService =
-new LandingPageService();
+export const landingPageService = new LandingPageService();

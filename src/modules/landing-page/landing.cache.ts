@@ -4,69 +4,39 @@ import { logger } from "../../lib/winston.js";
 const LANDING_PAGE_CACHE_TTL_SECONDS = 60 * 10;
 
 const buildLandingListKey = () => "landing-page:list";
-const buildLandingDetailsKey = (id : string) => `landing-page:details:${id}`;
+const buildLandingDetailsKey = (id: string) => `landing-page:details:${id}`;
 
-class LandingPageCache{
+class LandingPageCache {
+  async getOrSetLandingPages<T>(producer: () => Promise<T>) {
+    return cacheService.remember(buildLandingListKey(), LANDING_PAGE_CACHE_TTL_SECONDS, producer);
+  }
 
-    async getOrSetLandingPages<T>(
-        producer: () => Promise<T>
-    ){
-        return cacheService.remember(
-            buildLandingListKey(),
-            LANDING_PAGE_CACHE_TTL_SECONDS,
-            producer
-        );
-    }
+  async getOrSetLandingDetails<T>(id: string, producer: () => Promise<T>) {
+    return cacheService.remember(
+      buildLandingDetailsKey(id),
+      LANDING_PAGE_CACHE_TTL_SECONDS,
+      producer
+    );
+  }
 
-    async getOrSetLandingDetails<T>(
-        id : string,
-        producer: () => Promise<T>
-    ){
+  async invalidateLandingPages() {
+    const deletedCount = await cacheService.delete(buildLandingListKey());
 
-        return cacheService.remember(
-            buildLandingDetailsKey(id),
-            LANDING_PAGE_CACHE_TTL_SECONDS,
-            producer
-        );
+    logger.info("Landing pages cache invalidated", {
+      deletedCount,
+    });
+  }
 
-    }
+  async invalidateLanding(id: string) {
+    const deletedCount = await cacheService.delete(buildLandingDetailsKey(id));
 
-    async invalidateLandingPages() {
+    logger.info("Landing page cache invalidated", {
+      id,
+      deletedCount,
+    });
 
-        const deletedCount = 
-        await cacheService.delete(
-            buildLandingListKey()
-        );
-
-        logger.info(
-            "Landing pages cache invalidated",
-            {
-                deletedCount
-            }
-        )
-    }
-
-    async invalidateLanding(
-        id : string
-    ) {
-
-        const deletedCount = 
-         
-        await cacheService.delete(
-            buildLandingDetailsKey(id)
-        );
-
-        logger.info(
-            "Landing page cache invalidated",
-            {
-                id, 
-                deletedCount
-            }
-        );
-
-        await this.invalidateLandingPages();
-    }
+    await this.invalidateLandingPages();
+  }
 }
 
-export const landingPageCache = 
-new LandingPageCache();
+export const landingPageCache = new LandingPageCache();

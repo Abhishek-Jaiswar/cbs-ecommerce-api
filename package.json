@@ -12,7 +12,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "test": "jest"
+    "test": "jest",
+    "seed:landing": "tsx prisma/seed-landing.ts"
   },
   "keywords": [],
   "author": "CBS software solutions",
@@ -22,6 +23,7 @@
     "@aws-sdk/client-s3": "^3.1059.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@types/streamifier": "^0.1.2",
     "argon2": "^0.44.0",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",

@@ -1,59 +1,33 @@
-import { Router }
-from "express";
+import { Router } from "express";
+import { landingPageController } from "./landing.controller.js";
+import { requireAuth } from "../../middlewares/require-auth.js";
+import { requireRole } from "../../middlewares/require-role.js";
+import { upload } from "../../middlewares/multer.middleware.js";
 
-import {
- landingPageController,
-}
-from "./landing.controller.js";
+const router: Router = Router();
 
-const router: Router =
-Router();
+// Public routes
+router.get("/", landingPageController.getAll);
+router.get("/slug/:slug", landingPageController.getBySlug);
 
-
+// Admin routes
+router.get("/:id", requireAuth, requireRole("ADMIN"), landingPageController.getById);
 router.post(
- "/",
- landingPageController.create
+  "/",
+  requireAuth,
+  requireRole("ADMIN"),
+  upload.single("file"),
+  landingPageController.create
 );
-
-
-router.get(
- "/",
- landingPageController.getAll
-);
-
-
-router.get(
- "/:id",
- landingPageController.getById
-);
-
-
-router.get(
- "/slug/:slug",
- landingPageController.getBySlug
-);
-
-
 router.put(
- "/:id",
- landingPageController.update
+  "/:id",
+  requireAuth,
+  requireRole("ADMIN"),
+  upload.single("file"),
+  landingPageController.update
 );
-
-router.delete(
- "/:id",
- landingPageController.delete
-);
-
-
-router.patch(
- "/:id/publish",
- landingPageController.publish
-);
-
-
-router.patch(
- "/:id/unpublish",
- landingPageController.unpublish
-);
+router.delete("/:id", requireAuth, requireRole("ADMIN"), landingPageController.delete);
+router.patch("/:id/publish", requireAuth, requireRole("ADMIN"), landingPageController.publish);
+router.patch("/:id/unpublish", requireAuth, requireRole("ADMIN"), landingPageController.unpublish);
 
 export default router;
