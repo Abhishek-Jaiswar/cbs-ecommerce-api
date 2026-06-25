@@ -276,6 +276,7 @@ model Category {
   @@unique([parentId, name])
   @@index([slug])
   @@index([parentId])
+  landingCategories LandingCategory[]
 }
 
 model Tag {
@@ -361,21 +362,7 @@ model BlogTag {
   @@index([slug])
 }
 
-model LandingPage{
 
-  id         String         @id @default(cuid())
-  title      String
-  slug       String         @unique
-  description  String?      @db.Text
-  imageUrl     String
-  imagePublicId String 
-  sections      Json?
-  isPublished   Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@map("landing_images")
-}
 
 model Cart {
   id String @id @default(cuid())
@@ -683,6 +670,37 @@ model CouponRedemption {
   @@index([couponId])
   @@index([userId])
   @@index([createdAt])
+}
+
+model LandingPage{
+
+  id         String         @id @default(cuid())
+  title      String
+  slug       String         @unique
+  description  String?      @db.Text
+  imageUrl     String
+  imagePublicId String 
+  sections      Json?
+  isPublished   Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("landing_images")
+}
+
+model LandingCategory{
+
+  id  String  @id @default(cuid())
+  categoryId String 
+  label  String
+  image   String
+  storageKey  String
+  slot     Int
+  isActive   Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId],references: [id], onDelete: Cascade)
 }
 
 enum Role {
