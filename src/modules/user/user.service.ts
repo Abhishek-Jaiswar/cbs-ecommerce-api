@@ -89,7 +89,9 @@ class UserService {
     const { otp, hashedOtp } = await this.generateHashedOtp();
     await userCache.setUserOtp(email, hashedOtp);
     logger.info(`[DEBUG OTP] Password Reset OTP for ${email}: ${otp}`);
-    await emailService.sendResetPasswordOtp(email, otp);
+    emailService.sendResetPasswordOtp(email, otp).catch((err) => {
+      logger.error(`Failed to send password reset email to ${email}:`, err);
+    });
   }
 
   async verifyOtpService(otp: string, email: string) {
@@ -223,7 +225,9 @@ class UserService {
 
     await userCache.setEmailVerificationOtp(email, hashedOtp);
     logger.info(`[DEBUG OTP] Email Verification OTP for ${email}: ${otp}`);
-    await emailService.sendOtpEmail(email, otp);
+    emailService.sendOtpEmail(email, otp).catch((err) => {
+      logger.error(`Failed to send email verification OTP to ${email}:`, err);
+    });
   }
 
   private async generateHashedOtp() {
