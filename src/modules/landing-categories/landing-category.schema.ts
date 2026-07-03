@@ -50,7 +50,7 @@ export const updateLandingCategoryStatusSchema = z.object({
         if (val.toLowerCase() === "false") return false;
       }
       return val;
-    }, z.boolean({ required_error: "isActive is required" })),
+    }, z.boolean({ message: "isActive is required" })),
 });
 
 export type TCreateLandingCategoryInput = z.infer<typeof createLandingCategorySchema>;
