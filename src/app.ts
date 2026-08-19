@@ -30,6 +30,7 @@ import blogPostRoutes from "./modules/blog-post/blog-post.route.js";
 import inventoryRoutes from "./modules/inventory-management/inventory.routes.js";
 import landingPageRoutes from "./modules/landing-page/landing.routes.js";
 import landingCategoryRoutes from "./modules/landing-categories/landing-category.routes.js";
+import searchRoutes from "./modules/search/search.routes.js";
 import os from "os";
 
 export const startApp = (): Application => {
@@ -120,6 +121,7 @@ export const startApp = (): Application => {
   app.use(`/api/${Env.API_VERSION}/inventory`, inventoryRoutes);
   app.use(`/api/${Env.API_VERSION}/landing-pages`, landingPageRoutes);
   app.use(`/api/${Env.API_VERSION}/landing-categories`, landingCategoryRoutes);
+  app.use(`/api/${Env.API_VERSION}/search`, searchRoutes);
   app.get("/", (_req: Request, res: Response) => {
     const load = os.loadavg();
     const freeMem = os.freemem();
