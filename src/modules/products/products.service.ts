@@ -10,6 +10,7 @@ import type {
   TProductSizeDTO,
   TProductVariantDTO,
   TProductSpecificationDTO,
+  TProductListingQuery,
 } from "./product.schema.js";
 import { productCategoryRepository } from "../categories/product-category.repository.js";
 import { brandRepository } from "../brands/brands.repository.js";
@@ -18,9 +19,9 @@ import type { TImageUpload } from "./product.types.js";
 import { uploadService } from "../../services/storage/upload.service.js";
 
 class ProductService {
-  async getProductsForListing(page: number, limit: number) {
-    return await productCache.getOrSetProductLists(page, limit, async () => {
-      const result = await productRepository.getProductsForListing(page, limit);
+  async getProductsForListing(query: TProductListingQuery) {
+    return await productCache.getOrSetProductLists(query, async () => {
+      const result = await productRepository.getProductsForListing(query);
       const activeOffers = await offerService.getActiveOffers();
       result.items = result.items.map((product: any) => applyOffersToProduct(product, activeOffers));
       return result;

@@ -6,19 +6,135 @@ import type {
   TProductSizeDTO,
   TProductSpecificationDTO,
   TProductVariantWithSku,
+  TProductListingQuery,
 } from "./product.schema.js";
 import type { TProductImageUpload } from "./product.types.js";
 
+type ListingCategory = { slug: string; name: string; excerpt: string | null; image: string; altText: string };
+type TagGroup = { group: string; tags: { slug: string; label: string }[] };
+type ListingItem = Record<string, unknown>;
+
+/** "Style: Minimal" -> "Style"; tags without a colon are ungrouped. */
+const tagGroupOf = (name: string) => {
+  const i = name.indexOf(":");
+  return i > 0 ? name.slice(0, i).trim() : null;
+};
+
 class ProductRepository {
-  async getProductsForListing(page: number, limit: number) {
+  /**
+   * Storefront listing with filters, sorting and offset paging.
+   * Sorts always end with `id` so consecutive pages never repeat or skip rows.
+   */
+  async getProductsForListing(query: TProductListingQuery) {
+    const { page, limit } = query;
+    const empty = {
+      items: [] as ListingItem[],
+      total: 0,
+      page,
+      limit,
+      totalPages: 0,
+      category: null as ListingCategory | null,
+      ...(query.facets ? { facets: { priceRange: { min: 0, max: 0 }, tagGroups: [] as TagGroup[] } } : {}),
+    };
+
+    // ---- scope: listed products, optionally within a category subtree -----
+    const scope: Prisma.ProductWhereInput = { status: "ACTIVE", forListing: true };
+    let category: ListingCategory | null = null;
+
+    if (query.category) {
+      const all = await prisma.category.findMany({
+        where: { isActive: true },
+        select: { id: true, slug: true, name: true, excerpt: true, image: true, altText: true, parentId: true },
+      });
+      const root = all.find((c) => c.slug === query.category);
+      if (!root) return empty;
+      const ids = new Set([root.id]);
+      // collect descendants (categories table is small)
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const c of all) {
+          if (c.parentId && ids.has(c.parentId) && !ids.has(c.id)) {
+            ids.add(c.id);
+            grew = true;
+          }
+        }
+      }
+      scope.categoryId = { in: [...ids] };
+      category = {
+        slug: root.slug,
+        name: root.name,
+        excerpt: root.excerpt,
+        image: root.image,
+        altText: root.altText,
+      };
+    }
+
+    // ---- filters -----------------------------------------------------------
+    const and: Prisma.ProductWhereInput[] = [];
+
+    if (query.tags?.length) {
+      const tags = await prisma.tag.findMany({
+        where: { slug: { in: query.tags } },
+        select: { id: true, name: true },
+      });
+      if (tags.length === 0) return { ...empty, category };
+      // "Group: Value" tags: OR within a group, AND across groups.
+      const groups = new Map<string, string[]>();
+      for (const t of tags) {
+        const group = tagGroupOf(t.name) ?? "";
+        groups.set(group, [...(groups.get(group) ?? []), t.id]);
+      }
+      for (const ids of groups.values()) {
+        and.push({ productTags: { some: { tagId: { in: ids } } } });
+      }
+    }
+    if (query.search) {
+      and.push({
+        OR: [
+          { name: { contains: query.search, mode: "insensitive" } },
+          { excerpt: { contains: query.search, mode: "insensitive" } },
+        ],
+      });
+    }
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      and.push({
+        price: {
+          ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
+          ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {}),
+        },
+      });
+    }
+    if (query.sale) and.push({ isSale: true });
+    if (query.new) and.push({ isNew: true });
+    if (query.featured) and.push({ isFeatured: true });
+
+    const where: Prisma.ProductWhereInput = and.length ? { AND: [scope, ...and] } : scope;
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = (() => {
+      switch (query.sort) {
+        case "featured":
+          return [{ isFeatured: "desc" }, { createdAt: "desc" }];
+        case "price-asc":
+          return [{ price: "asc" }];
+        case "price-desc":
+          return [{ price: "desc" }];
+        case "name-asc":
+          return [{ name: "asc" }];
+        case "name-desc":
+          return [{ name: "desc" }];
+        default:
+          return [{ createdAt: "desc" }];
+      }
+    })();
+    orderBy.push({ id: "asc" });
+
     const [items, total] = await prisma.$transaction([
       prisma.product.findMany({
+        where,
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
-        where: {
-          status: "ACTIVE",
-          forListing: true,
-        },
         select: {
           id: true,
           name: true,
@@ -34,64 +150,68 @@ class ProductRepository {
           categoryId: true,
           brandId: true,
           createdAt: true,
-          brand: {
-            select: {
-              name: true,
-            },
+          brand: { select: { name: true } },
+          productTags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
+          variants: { select: { id: true, physicalQty: true, committedQty: true } },
+          colors: { select: { id: true, name: true, hex: true } },
+          images: {
+            take: 1,
+            orderBy: [{ isPrimary: "desc" }, { position: "asc" }],
+            select: { media: { select: { url: true, altText: true } } },
           },
-          productTags: {
-            select: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          },
-          variants: {
-            select: {
-              id: true,
-              physicalQty: true,
-              committedQty: true,
-            },
-          },
-          colors: {
-            select: {
-              id: true,
-              name: true,
-              hex: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
         },
       }),
-
-      prisma.product.count({
-        where: {
-          status: "ACTIVE",
-          forListing: true,
-        },
-      }),
+      prisma.product.count({ where }),
     ]);
 
-    const mappedItems = items.map((product) => ({
+    const mappedItems = items.map(({ images, ...product }) => ({
       ...product,
+      image: images[0] ? { url: images[0].media.url, alt: images[0].media.altText ?? product.name } : null,
       variants: product.variants.map((v) => ({
         ...v,
         stock: v.physicalQty - (v.committedQty || 0),
       })),
     }));
 
-    return {
+    const result = {
       items: mappedItems,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      category,
+    };
+
+    if (!query.facets) return result;
+
+    // ---- facets: price bounds of the category scope + grouped tags in use --
+    const [priceAgg, tagRows] = await Promise.all([
+      prisma.product.aggregate({ where: scope, _min: { price: true }, _max: { price: true } }),
+      prisma.tag.findMany({
+        where: { name: { contains: ":" }, products: { some: { product: { status: "ACTIVE", forListing: true } } } },
+        select: { slug: true, name: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+
+    const groupMap = new Map<string, TagGroup>();
+    for (const t of tagRows) {
+      const group = tagGroupOf(t.name);
+      if (!group) continue;
+      const entry = groupMap.get(group) ?? { group, tags: [] };
+      entry.tags.push({ slug: t.slug, label: t.name.slice(t.name.indexOf(":") + 1).trim() });
+      groupMap.set(group, entry);
+    }
+
+    return {
+      ...result,
+      facets: {
+        priceRange: {
+          min: Math.floor(Number(priceAgg._min.price ?? 0)),
+          max: Math.ceil(Number(priceAgg._max.price ?? 0)),
+        },
+        tagGroups: [...groupMap.values()],
+      },
     };
   }
 

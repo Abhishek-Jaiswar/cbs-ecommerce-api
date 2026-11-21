@@ -1,4 +1,6 @@
+import { createHash } from "node:crypto";
 import { cacheService } from "../../lib/shared/cache.js";
+import type { TProductListingQuery } from "./product.schema.js";
 import { logger } from "../../lib/winston.js";
 
 const PRODUCT_CACHE_TTL_SECOND = 60 * 30;
@@ -6,8 +8,12 @@ const PRODUCT_VERSION_FALLBACK = 1;
 const PRODUCT_LIST_VERSION_KEY = "product:list:version";
 
 const buildProductDetailsKey = (id: string) => `product:details:${id}`;
-const buildProductListKey = (version: number, page: number, limit: number) =>
-  `product:list:v${version}:${page}:${limit}`;
+/** One key per distinct listing query; tag order and casing are normalised. */
+const buildProductListKey = (version: number, query: TProductListingQuery) => {
+  const normalised = JSON.stringify({ ...query, tags: query.tags ? [...query.tags].sort() : undefined });
+  const hash = createHash("sha1").update(normalised).digest("hex").slice(0, 16);
+  return `product:list:v${version}:${hash}`;
+};
 
 class ProductCache {
   private async getListVersion() {
@@ -18,10 +24,10 @@ class ProductCache {
     return cacheService.remember(buildProductDetailsKey(id), PRODUCT_CACHE_TTL_SECOND, producer);
   }
 
-  async getOrSetProductLists<T>(page: number, limit: number, producer: () => Promise<T>) {
+  async getOrSetProductLists<T>(query: TProductListingQuery, producer: () => Promise<T>) {
     const version = await this.getListVersion();
     return cacheService.remember(
-      buildProductListKey(version, page, limit),
+      buildProductListKey(version, query),
       PRODUCT_CACHE_TTL_SECOND,
       producer
     );

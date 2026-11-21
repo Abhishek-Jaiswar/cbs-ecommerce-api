@@ -3,6 +3,7 @@ import { productCategoryCache } from "./product-category.cache.js";
 import type { TCreateCategory, TUpdateCategory } from "./product-category.types.js";
 import { BadRequestError, ConflictError, NotFoundError } from "../../utils/errors/app-error.js";
 import { landingCategoryCache } from "../landing-categories/landing-category.cache.js";
+import { productCache } from "../products/products.cache.js";
 
 class ProductCategoryService {
   async getCategories(page: number, limit: number) {
@@ -67,6 +68,8 @@ class ProductCategoryService {
 
     // 4. Invalidate cache
     await productCategoryCache.invalidateCategory(category.id, category.slug);
+    // drop any cached "unknown category" listing for this slug
+    await productCache.invalidateProductLists();
 
     return category;
   }
@@ -113,6 +116,8 @@ class ProductCategoryService {
       await productCategoryCache.invalidateCategory(updatedCategory.id, updatedCategory.slug);
     }
     await landingCategoryCache.invalidateActiveBanners();
+    // shop listings embed the category banner and resolve the category tree
+    await productCache.invalidateProductLists();
 
     return updatedCategory;
   }

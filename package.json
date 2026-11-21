@@ -13,7 +13,8 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "test": "jest",
-    "seed:landing": "tsx prisma/seed-landing.ts"
+    "seed:landing": "tsx prisma/seed-landing.ts",
+    "seed:shop-tags": "tsx prisma/seed-shop-tags.ts"
   },
   "keywords": [],
   "author": "CBS software solutions",

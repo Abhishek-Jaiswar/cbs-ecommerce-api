@@ -3,6 +3,7 @@ import { productTagCache } from "./product-tags.cache.js";
 import type { TCreateProductTag, TUpdateProductTag } from "./product-tags.types.js";
 import { ConflictError, NotFoundError } from "../../utils/errors/app-error.js";
 import { prisma } from "../../lib/prisma.js";
+import { productCache } from "../products/products.cache.js";
 
 class ProductTagService {
   async getProductTags(page: number, limit: number) {
@@ -97,6 +98,8 @@ class ProductTagService {
     if (updated.slug !== tag.slug) {
       await productTagCache.invalidateTag(updated.id, updated.slug);
     }
+    // listings embed tag names/slugs and the shop's tag groups
+    await productCache.invalidateProductLists();
 
     return updated;
   }

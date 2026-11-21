@@ -95,3 +95,58 @@ export type TProductStatusDTO = z.infer<typeof productStatusSchema>;
 // import { nanoid } from "nanoid";
 
 // const sku = `SKU-${nanoid(8).toUpperCase()}`;
+
+// ---------------------------------------------------------------------------
+// Storefront listing query (GET /products)
+// All fields optional: a bare request keeps the original "newest first" list.
+// ---------------------------------------------------------------------------
+
+const queryBool = z
+  .enum(["true", "false", "1", "0"])
+  .transform((v) => v === "true" || v === "1")
+  .optional();
+
+const queryList = z
+  .string()
+  .trim()
+  .transform((v) =>
+    v
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+  )
+  .pipe(z.array(z.string().max(100)).max(30))
+  .optional();
+
+export const PRODUCT_LISTING_SORTS = [
+  "newest",
+  "featured",
+  "price-asc",
+  "price-desc",
+  "name-asc",
+  "name-desc",
+] as const;
+
+export const productListingQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).max(10_000).default(1),
+    // clamp rather than reject, as the endpoint always has
+    limit: z.coerce.number().int().min(1).default(10).transform((v) => Math.min(v, 100)),
+    category: z.string().trim().toLowerCase().max(120).optional(),
+    tags: queryList,
+    search: z.string().trim().max(100).optional(),
+    minPrice: z.coerce.number().min(0).optional(),
+    maxPrice: z.coerce.number().min(0).optional(),
+    sale: queryBool,
+    new: queryBool,
+    featured: queryBool,
+    sort: z.enum(PRODUCT_LISTING_SORTS).default("newest"),
+    // facets=true adds price range + tag groups (the shop requests it on page 1)
+    facets: queryBool,
+  })
+  .refine((q) => q.minPrice === undefined || q.maxPrice === undefined || q.minPrice <= q.maxPrice, {
+    message: "minPrice must be less than or equal to maxPrice",
+    path: ["minPrice"],
+  });
+
+export type TProductListingQuery = z.infer<typeof productListingQuerySchema>;

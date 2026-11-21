@@ -13,6 +13,7 @@ import {
   productVariantSchema,
   productSpecificationSchema,
   productStatusSchema,
+  productListingQuerySchema,
   type TBasicInfoDTO,
   type TProductSpecificationDTO,
 } from "./product.schema.js";
@@ -82,10 +83,16 @@ const formatProduct = (product: any, isAdmin: boolean) => {
 class ProductController {
   async getProducts(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = Math.max(Number(req.query.page) || 1, 1);
-      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+      const validation = productListingQuerySchema.safeParse(req.query);
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation Failed",
+          error: validation.error.issues.map((issue) => issue.message),
+        });
+      }
 
-      const result = await productService.getProductsForListing(page, limit);
+      const result = await productService.getProductsForListing(validation.data);
       const isAdmin = isAdminRequest(req);
       const formattedItems = result.items.map((item: any) => formatProduct(item, isAdmin));
 
