@@ -34,7 +34,6 @@ class ProductRepository {
       limit,
       totalPages: 0,
       category: null as ListingCategory | null,
-      ...(query.facets ? { facets: { priceRange: { min: 0, max: 0 }, tagGroups: [] as TagGroup[] } } : {}),
     };
 
     // ---- scope: listed products, optionally within a category subtree -----
@@ -47,7 +46,7 @@ class ProductRepository {
         select: { id: true, slug: true, name: true, excerpt: true, image: true, altText: true, parentId: true },
       });
       const root = all.find((c) => c.slug === query.category);
-      if (!root) return empty;
+      if (!root) return query.facets ? { ...empty, facets: await this.getListingFacets({ id: { in: [] } }) } : empty;
       const ids = new Set([root.id]);
       // collect descendants (categories table is small)
       let grew = true;
@@ -78,7 +77,9 @@ class ProductRepository {
         where: { slug: { in: query.tags } },
         select: { id: true, name: true },
       });
-      if (tags.length === 0) return { ...empty, category };
+      if (tags.length === 0) {
+        return query.facets ? { ...empty, category, facets: await this.getListingFacets(scope) } : { ...empty, category };
+      }
       // "Group: Value" tags: OR within a group, AND across groups.
       const groups = new Map<string, string[]>();
       for (const t of tags) {
@@ -184,15 +185,28 @@ class ProductRepository {
 
     if (!query.facets) return result;
 
-    // ---- facets: price bounds of the category scope + grouped tags in use --
-    const [priceAgg, tagRows] = await Promise.all([
+    return { ...result, facets: await this.getListingFacets(scope) };
+  }
+
+  /** Filter options for the shop drawer: categories with listed products, price bounds of the scope, grouped tags in use. */
+  private async getListingFacets(scope: Prisma.ProductWhereInput) {
+    const listed: Prisma.ProductWhereInput = { status: "ACTIVE", forListing: true };
+    const [priceAgg, tagRows, catCounts] = await Promise.all([
       prisma.product.aggregate({ where: scope, _min: { price: true }, _max: { price: true } }),
       prisma.tag.findMany({
-        where: { name: { contains: ":" }, products: { some: { product: { status: "ACTIVE", forListing: true } } } },
+        where: { name: { contains: ":" }, products: { some: { product: listed } } },
         select: { slug: true, name: true },
         orderBy: { name: "asc" },
       }),
+      prisma.product.groupBy({ by: ["categoryId"], where: listed, _count: { _all: true } }),
     ]);
+
+    const cats = await prisma.category.findMany({
+      where: { id: { in: catCounts.map((c) => c.categoryId) }, isActive: true },
+      select: { id: true, slug: true, name: true },
+      orderBy: { name: "asc" },
+    });
+    const countOf = new Map(catCounts.map((c) => [c.categoryId, c._count._all]));
 
     const groupMap = new Map<string, TagGroup>();
     for (const t of tagRows) {
@@ -204,14 +218,12 @@ class ProductRepository {
     }
 
     return {
-      ...result,
-      facets: {
-        priceRange: {
-          min: Math.floor(Number(priceAgg._min.price ?? 0)),
-          max: Math.ceil(Number(priceAgg._max.price ?? 0)),
-        },
-        tagGroups: [...groupMap.values()],
+      categories: cats.map((c) => ({ slug: c.slug, name: c.name, count: countOf.get(c.id) ?? 0 })),
+      priceRange: {
+        min: Math.floor(Number(priceAgg._min.price ?? 0)),
+        max: Math.ceil(Number(priceAgg._max.price ?? 0)),
       },
+      tagGroups: [...groupMap.values()],
     };
   }
 
