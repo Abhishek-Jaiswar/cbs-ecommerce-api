@@ -1,4 +1,5 @@
 import { cacheService } from "../../lib/shared/cache.js";
+import type { TReviewSort } from "./reviews.types.js";
 import { logger } from "../../lib/winston.js";
 
 const REVIEW_CACHE_TTL_SECONDS = 60 * 30; // 30 minutes
@@ -10,8 +11,9 @@ const buildProductReviewListKey = (
   productId: string,
   version: number,
   page: number,
-  limit: number
-) => `reviews:product:${productId}:v${version}:page:${page}:limit:${limit}`;
+  limit: number,
+  sort: TReviewSort
+) => `reviews:product:${productId}:v${version}:page:${page}:limit:${limit}:sort:${sort}`;
 const buildReviewDetailsKey = (id: string) => `reviews:details:${id}`;
 
 class ReviewCache {
@@ -26,11 +28,12 @@ class ReviewCache {
     productId: string,
     page: number,
     limit: number,
+    sort: TReviewSort,
     producer: () => Promise<T>
   ) {
     const version = await this.getProductReviewListVersion(productId);
     return cacheService.remember(
-      buildProductReviewListKey(productId, version, page, limit),
+      buildProductReviewListKey(productId, version, page, limit, sort),
       REVIEW_CACHE_TTL_SECONDS,
       producer
     );

@@ -1,8 +1,21 @@
 import { prisma } from "../../lib/prisma.js";
-import type { TCreateReview, TUpdateReview } from "./reviews.types.js";
+import type { Prisma } from "../../generated/prisma/client.js";
+import type { TCreateReview, TReviewSort, TUpdateReview } from "./reviews.types.js";
 
 class ReviewRepository {
-  async getReviewsByProductId(productId: string, page: number, limit: number) {
+  async getReviewsByProductId(
+    productId: string,
+    page: number,
+    limit: number,
+    sort: TReviewSort = "newest"
+  ) {
+    const orderBy: Prisma.ReviewOrderByWithRelationInput[] =
+      sort === "highest"
+        ? [{ rating: "desc" }, { createdAt: "desc" }, { id: "asc" }]
+        : sort === "lowest"
+          ? [{ rating: "asc" }, { createdAt: "desc" }, { id: "asc" }]
+          : [{ createdAt: "desc" }, { id: "asc" }];
+
     const [items, total, ratingAgg] = await prisma.$transaction([
       prisma.review.findMany({
         where: {
@@ -10,9 +23,7 @@ class ReviewRepository {
         },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy,
         include: {
           user: {
             select: {
@@ -146,4 +157,3 @@ class ReviewRepository {
 }
 
 export const reviewRepository = new ReviewRepository();
-

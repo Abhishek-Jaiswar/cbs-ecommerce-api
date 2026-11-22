@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { REVIEW_SORTS, type TReviewSort } from "./reviews.types.js";
 import { createReviewBodySchema, updateReviewBodySchema } from "./reviews.schema.js";
 import { reviewService } from "./reviews.service.js";
 import { BadRequestError, UnauthorizedError } from "../../utils/errors/app-error.js";
@@ -10,12 +11,16 @@ class ReviewController {
       const productId = req.params.productId as string;
       const page = Math.max(Number(req.query.page) || 1, 1);
       const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+      const sortParam = String(req.query.sort ?? "newest");
+      const sort: TReviewSort = (REVIEW_SORTS as readonly string[]).includes(sortParam)
+        ? (sortParam as TReviewSort)
+        : "newest";
 
       if (!productId) {
         throw new BadRequestError("Product ID is required");
       }
 
-      const result = await reviewService.getReviewsByProductId(productId, page, limit);
+      const result = await reviewService.getReviewsByProductId(productId, page, limit, sort);
 
       return res.status(200).json({
         success: true,
@@ -170,4 +175,3 @@ class ReviewController {
 }
 
 export const reviewController = new ReviewController();
-

@@ -1,11 +1,17 @@
 import { reviewRepository } from "./reviews.repository.js";
+import type { TReviewSort } from "./reviews.types.js";
 import { reviewCache } from "./reviews.cache.js";
 import type { TCreateReview, TUpdateReview } from "./reviews.types.js";
 import { ConflictError, ForbiddenError, NotFoundError } from "../../utils/errors/app-error.js";
 import { prisma } from "../../lib/prisma.js";
 
 class ReviewService {
-  async getReviewsByProductId(productId: string, page: number, limit: number) {
+  async getReviewsByProductId(
+    productId: string,
+    page: number,
+    limit: number,
+    sort: TReviewSort = "newest"
+  ) {
     // 1. Verify product exists
     const product = await prisma.product.findUnique({
       where: {
@@ -17,8 +23,8 @@ class ReviewService {
       throw new NotFoundError("Product not found.");
     }
 
-    return reviewCache.getOrSetProductReviews(productId, page, limit, () =>
-      reviewRepository.getReviewsByProductId(productId, page, limit)
+    return reviewCache.getOrSetProductReviews(productId, page, limit, sort, () =>
+      reviewRepository.getReviewsByProductId(productId, page, limit, sort)
     );
   }
 
@@ -119,4 +125,3 @@ class ReviewService {
 }
 
 export const reviewService = new ReviewService();
-

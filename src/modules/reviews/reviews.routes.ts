@@ -14,4 +14,3 @@ router.put("/:id", requireAuth, reviewController.updateReview);
 router.delete("/:id", requireAuth, reviewController.deleteReview);
 
 export default router;
-
