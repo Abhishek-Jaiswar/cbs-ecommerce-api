@@ -3,7 +3,7 @@ import type { TCreateReview, TUpdateReview } from "./reviews.types.js";
 
 class ReviewRepository {
   async getReviewsByProductId(productId: string, page: number, limit: number) {
-    const [items, total] = await prisma.$transaction([
+    const [items, total, ratingAgg] = await prisma.$transaction([
       prisma.review.findMany({
         where: {
           productId,
@@ -28,11 +28,19 @@ class ReviewRepository {
           productId,
         },
       }),
+      prisma.review.aggregate({
+        where: { productId },
+        _avg: { rating: true },
+      }),
     ]);
+
+    const avg = ratingAgg._avg.rating;
 
     return {
       items,
       total,
+      // across all of the product's reviews, not just this page (one decimal)
+      averageRating: avg === null ? null : Math.round(avg * 10) / 10,
       page,
       limit,
       totalPages: Math.ceil(total / limit),

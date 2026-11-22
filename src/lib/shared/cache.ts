@@ -74,9 +74,20 @@ class CacheService {
     }
   }
 
+  /**
+   * Bumps a cache version counter. Readers treat a missing key as their
+   * fallback (0 or 1), and a plain INCR on a missing key returns 1, so the
+   * first invalidation after a deploy or Redis flush would change nothing.
+   * A missing key therefore starts at 2, atomically.
+   */
   async increment(key: string): Promise<number | null> {
     try {
-      return await redis.incr(key);
+      const next = await redis.eval(
+        "if redis.call('EXISTS', KEYS[1]) == 0 then redis.call('SET', KEYS[1], 1) end return redis.call('INCR', KEYS[1])",
+        1,
+        key
+      );
+      return Number(next);
     } catch (error) {
       logger.warn("Failed to increment cache value", {
         key,

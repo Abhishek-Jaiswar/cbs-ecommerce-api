@@ -68,11 +68,17 @@ class CartService {
     }
 
     const availableQty = variant.physicalQty - variant.committedQty;
-    if (availableQty < quantity) {
-      throw new BadRequestError(`Insufficient stock. Only ${availableQty} items available.`);
-    }
-
     const cart = await cartRepository.findOrCreateCart(userId);
+
+    // adding increments an existing line, so check the resulting quantity
+    const inCart = await cartRepository.getCartItemQuantity(cart.id, variantId);
+    if (availableQty < inCart + quantity) {
+      throw new BadRequestError(
+        inCart > 0
+          ? `Insufficient stock. Only ${availableQty} available and ${inCart} already in your cart.`
+          : `Insufficient stock. Only ${availableQty} items available.`
+      );
+    }
 
     return cartRepository.addToCart(cart.id, variantId, quantity);
   }
