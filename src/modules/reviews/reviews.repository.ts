@@ -1,18 +1,29 @@
 import { prisma } from "../../lib/prisma.js";
-import type { TCreateReview, TUpdateReview } from "./reviews.types.js";
+import type { Prisma } from "../../generated/prisma/client.js";
+import type { TCreateReview, TReviewSort, TUpdateReview } from "./reviews.types.js";
 
 class ReviewRepository {
-  async getReviewsByProductId(productId: string, page: number, limit: number) {
-    const [items, total] = await prisma.$transaction([
+  async getReviewsByProductId(
+    productId: string,
+    page: number,
+    limit: number,
+    sort: TReviewSort = "newest"
+  ) {
+    const orderBy: Prisma.ReviewOrderByWithRelationInput[] =
+      sort === "highest"
+        ? [{ rating: "desc" }, { createdAt: "desc" }, { id: "asc" }]
+        : sort === "lowest"
+          ? [{ rating: "asc" }, { createdAt: "desc" }, { id: "asc" }]
+          : [{ createdAt: "desc" }, { id: "asc" }];
+
+    const [items, total, ratingAgg] = await prisma.$transaction([
       prisma.review.findMany({
         where: {
           productId,
         },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy,
         include: {
           user: {
             select: {
@@ -28,11 +39,19 @@ class ReviewRepository {
           productId,
         },
       }),
+      prisma.review.aggregate({
+        where: { productId },
+        _avg: { rating: true },
+      }),
     ]);
+
+    const avg = ratingAgg._avg.rating;
 
     return {
       items,
       total,
+      // across all of the product's reviews, not just this page (one decimal)
+      averageRating: avg === null ? null : Math.round(avg * 10) / 10,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
@@ -138,4 +157,3 @@ class ReviewRepository {
 }
 
 export const reviewRepository = new ReviewRepository();
-

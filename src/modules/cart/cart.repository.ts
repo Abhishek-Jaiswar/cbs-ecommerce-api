@@ -73,6 +73,14 @@ class CartRepository {
     return cart;
   }
 
+  async getCartItemQuantity(cartId: string, variantId: string) {
+    const item = await prisma.cartItem.findUnique({
+      where: { cartId_variantId: { cartId, variantId } },
+      select: { quantity: true },
+    });
+    return item?.quantity ?? 0;
+  }
+
   async addToCart(cartId: string, variantId: string, quantity: number) {
     return prisma.cartItem.upsert({
       where: {
